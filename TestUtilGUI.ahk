@@ -35,12 +35,14 @@ ComChoice.OnEvent("Change", SendKeystrokeFromListbox)
 MyGui.Add("Text",, "Select Firmware Version")
 MyGui.Add("Button",, "Browse").OnEvent("Click", OpenFiledialogSolenoid)
 MyGui.Add("Text",, "Install Firmware to Solenoid")
+MyGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
 MyGui.Add("Button",, "Install").OnEvent("Click", InstallFWSolenoid)
 
 MyGui.Add("Text",, "Access Solenoid Board")
 MyGui.Add("Button", "" ,"Access").OnEvent("Click", AccessSolenoid)
 MyGui.Add("Text",, "Select COM Port Number")
-COMPort := MyGui.Add("Edit", "W70").SetFont("cBlack")
+COMPort := MyGui.Add("Edit", "W70")
+COMPort.SetFont("cBlack")
 MyGui.Add("UpDown") 
 MyGui.Add("Button",, "OK").OnEvent("Click", COMPortSelect)
 
@@ -66,7 +68,7 @@ SolenoidSensors := MyGui.AddDropDownList("W150", ["DDP3 '9a' Linear", "DDP3 '9b'
 SolenoidSensors.OnEvent("Change", SensorIDs)
 
 ;Test Solenoid
-MyGui.Add("Text","" , "For EL.LAB Use Only'!'").SetFont("Bold")
+MyGui.Add("Text","" , "For EL.LAB Use Only!")
 MyGui.Add("Text","" ,"Test Solenoid Switching")
 MyGui.Add("Button",, "Test Switching").OnEvent("Click", SolenoidSwitching)
 
@@ -245,17 +247,45 @@ OpenFiledialogSolenoid(*){
 }
 
 InstallFWSolenoid(*){
-    ControlSend "{3}",, "tkToolUtility.exe"
-    ControlSend  "{Enter}", , "tkToolUtility.exe"
-    Sleep 100 
-    ControlSend "{N}",, "tkToolUtility.exe"
-    Sleep 100 
-    ControlSend "{N}",, "tkToolUtility.exe"
-    Sleep 100 
-    ControlSend "{N}",, "tkToolUtility.exe"
-    Sleep 100
-    ControlSend  "{Enter}", , "tkToolUtility.exe"
+    SelectedCom := ComChoice.Text
+    switch SelectedCom {
+        case "PCAN":
+        ControlSend "{3}",, "tkToolUtility.exe"
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 100 
+        ControlSend "{N}",, "tkToolUtility.exe"
+        Sleep 100 
+        ControlSend "{N}",, "tkToolUtility.exe"
+        Sleep 100 
+        ControlSend "{N}",, "tkToolUtility.exe"
+        Sleep 100
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        case "QPSK":
+        Keystroke3()
+        Sleep 100
+        ControlSend  "{C}", , "tkToolUtility.exe"
+        ControlSend  "{O}", , "tkToolUtility.exe"
+        ControlSend  "{M}", , "tkToolUtility.exe"
+        ControlSend  COMPort.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 100 
+        ControlSend "{N}",, "tkToolUtility.exe"
+        Sleep 100 
+        ControlSend "{N}",, "tkToolUtility.exe"
+        Sleep 100 
+        ControlSend "{N}",, "tkToolUtility.exe"
+        Sleep 100
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        case "OFDM":
+            Keystroke3()
+        Case "Abort":
+            Keystroke7()
+    }
 }
+
 
 SolenoidUsage(*){
     SolenoidSelected := SolenoidUse.Text
