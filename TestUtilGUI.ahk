@@ -22,24 +22,82 @@ SetDarkWindowFrame(hwnd, boolEnable:=1) {
     DllCall("dwmapi\DwmSetWindowAttribute", "ptr", hwnd, "int", attr, "int*", boolEnable, "int", 4)
 }
 
+;Create tabs
+Tab := MyGui.add("Tab3",, ["Q-Telemetry", "Solenoid", "TC"])
+Tab.Font := "Bold"
 
-Tab := MyGui.add("Tab3",, ["Master Controller", "Solenoid", "TC"])
-MyGui.add("Button", "default" ,"Master Controller").OnEvent("Click", ButtonClick)
+;For Q-Telemetry Tab
+Tab.UseTab("Q-telemetry")
+
+;Choose Modem Type
+MyGui.Add("Text",, "Choose Modem Type")
+QTComChoice := MyGui.AddDropDownList("W80", ["QPSK", "OFDM"])
+
+;Choose Board
+MyGui.Add("Text",, "Choose Board Type")
+BoardChoice := MyGui.AddDropDownList("W150", ["Master Controller", "DCDC Converter", "Relay Board"])
+BoardChoice.OnEvent("Change", BoardSelect)
+
+;Select Master Controller
+;MyGui.Add("Text",, "Press THIS button for Master Controller")
+;MyGui.Add("Button",, "Master Controller").OnEvent("Click", MasterController)
+
+
+
+;Select DCDC Converter
+;MyGui.Add("Text","x360 y116", "Press THIS Button for DCDC Converter")
+;MyGui.Add("Button",, "DCDC Converter").OnEvent("Click", DCDC)
+
+
+
+
+;Select Relay Board
+;MyGui.Add("Text","x360 y116", "Press THIS Button for Relay Board")
+;MyGui.Add("Button",,"Relay Board").OnEvent("Click", RelayBoard)
+
+MyGui.Add("Text",, "Select COM Port Number")
+QTCOMPort := MyGui.Add("Edit", "W70")
+QTCOMPort.SetFont("cBlack")
+MyGui.Add("UpDown") 
+MyGui.Add("Button",, "OK").OnEvent("Click", QTCOMPortSelect)
+
+MyGui.Add("Text",, "Change to Raised Startup")
+MyGui.Add("Button",, "Raised Startup").OnEvent("Click", RaisedStartup)
+
+MyGui.Add("Text",, "Change to Default Startup")
+MyGui.Add("Button",, "Default Startup").OnEvent("Click", DefaultStartup)
+
+MyGui.Add("Text",, "Update AltusID/Board ID")
+QTID := MyGui.Add("Edit")
+QTID.SetFont("cBlack")
+MyGui.Add("Button",, "Update").OnEvent("Click", UpdateQTID)
+
+;For Solenoid Tab
 Tab.UseTab("Solenoid")
+
+;Select Solenoid
 MyGui.Add("Text",,"Press button for selecting Solenoid")
 SolenoidButton := MyGui.Add("Button", ,"Solenoid", ).OnEvent("Click", enter,)
+
+;Selecting communication option for solenoid
 MyGui.Add("Text",,"Select Communication Choice")
 ComChoice := MyGui.AddDropDownList("w80", ["PCAN","QPSK","OFDM", "ABORT"])
 ComChoice.OnEvent("Change", SendKeystrokeFromListbox)
 
+;Browse for FW for Solenoid
 MyGui.Add("Text",, "Select Firmware Version")
 MyGui.Add("Button",, "Browse").OnEvent("Click", OpenFiledialogSolenoid)
+
+;Install FW to Solenoid
 MyGui.Add("Text",, "Install Firmware to Solenoid")
 MyGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
 MyGui.Add("Button",, "Install").OnEvent("Click", InstallFWSolenoid)
 
+;Access solenoid board
 MyGui.Add("Text",, "Access Solenoid Board")
 MyGui.Add("Button", "" ,"Access").OnEvent("Click", AccessSolenoid)
+
+;Manually choose com port number
 MyGui.Add("Text",, "Select COM Port Number")
 COMPort := MyGui.Add("Edit", "W70")
 COMPort.SetFont("cBlack")
@@ -47,22 +105,27 @@ MyGui.Add("UpDown")
 MyGui.Add("Button",, "OK").OnEvent("Click", COMPortSelect)
 
 
-
+;Rescan of Solenoid CANIDs
 MyGui.Add("Text","", "Rescan Nodes If Necessecary")
 MyGui.Add("Button",, "Rescan").OnEvent("Click", PingNodes)
+
+;Choose what solenoid to access
 MyGui.Add("Text",, "Choose Solenoid Board")
 SolenoidAccess := MyGui.AddDropDownList("W150", ["FlexDrive", "MotorPump", "CompactTracMP", "SJR", "PrimeStroker", "ShortStroker", "ShortStrokerV2", "Puncher"])
 SolenoidAccess.OnEvent("Change", SolenoidIDs)
 ;CBS_DISABLENOSCROLL
 
-
+;Changing Solenoid Usage
 MyGui.Add("Text","ys+30", "Change Solenoid Usage")
 SolenoidUse := MyGui.AddDropDownList("W150", ["FlexDrive", "MotorPump", "CompactTracMP", "SJR", "PrimeStroker", "ShortStroker", "ShortStrokerV2", "Puncher"])
 SolenoidUse.OnEvent("Change", SolenoidUsage)
+
+;Changing sensor types
 MyGui.Add("Text","" , "Choose Sensor Type")
 SensorType := MyGui.AddDropDownList("W150",["HallEffect", "QuadEncoder", "Mech", "Unknown"])
 SensorType.OnEvent("Change", SensorTypeChange)
 
+;Changing sensor values
 MyGui.Add("Text","" , "Update Sensor Data For:")
 SolenoidSensors := MyGui.AddDropDownList("W150", ["DDP3 '9a' Linear", "DDP3 '9b' Linear", "Comp '10' Linear", "AncUpper '13a' Quad", "AncLower '13b' Quad", "Sensor6 'Not in Use'", "Sensor7 'Not in Use'"])
 SolenoidSensors.OnEvent("Change", SensorIDs)
@@ -150,6 +213,163 @@ CheckProgram(*){
         
 }
 
+BoardSelect(*){
+    SelectedBoard := BoardChoice.Text
+    Switch SelectedBoard{
+        Case "Master Controller" :
+            MasterController()
+        Case "DCDC Converter" :
+            DCDC()
+        Case "Relay Board" :
+            RelayBoard()
+    }
+}
+
+MasterController(*){
+    SelectedQTCom := QTComChoice.Text
+    Switch SelectedQTCom {
+        Case "QPSK" :
+            Keystroke1()
+            Sleep 100
+            Keystroke2()
+            Sleep 100
+            Keystroke1()
+        Case "OFDM" :
+            Keystroke1()
+            Sleep 100
+            Keystroke3()
+            Sleep 100
+            Keystroke1()
+    }
+}
+
+DCDC(*){
+    SelectedQTCom := QTComChoice.Text
+    Switch SelectedQTCom {
+        Case "QPSK" :
+            Keystroke1()
+            Sleep 100
+            Keystroke2()
+            Sleep 100
+            Keystroke2()
+        Case "OFDM" :
+            Keystroke1()
+            Sleep 100
+            Keystroke3()
+            Sleep 100
+            Keystroke2()
+    }
+}
+
+RelayBoard(*){
+    SelectedQTCom := QTComChoice.Text
+    Switch SelectedQTCom {
+        Case "QPSK" :
+            Keystroke1()
+            Sleep 100
+            Keystroke2()
+            Sleep 100
+            Keystroke3()
+        Case "OFDM" :
+            Keystroke1()
+            Sleep 100
+            Keystroke3()
+            Sleep 100
+            Keystroke3()
+    }
+}
+
+QTCOMPortSelect(*){
+
+    ControlSend  "{C}", , "tkToolUtility.exe"
+    ControlSend  "{O}", , "tkToolUtility.exe"
+    ControlSend  "{M}", , "tkToolUtility.exe"
+    ControlSend  QTCOMPort.Value ,, "tkToolUtility.exe"
+    Sleep 100
+    ControlSend "{Enter}", , "tkToolUtility.exe"
+    Sleep 500
+    ControlSend "{Enter}", , "tkToolUtility.exe"
+}
+
+RaisedStartup(*){
+    ControlSend  "{1}", , "tkToolUtility.exe"
+    ControlSend  "{3}", , "tkToolUtility.exe"
+    ControlSend  "{3}", , "tkToolUtility.exe"
+    ControlSend "{Enter}", , "tkToolUtility.exe"
+    Sleep 300
+    ControlSend  "{8}", , "tkToolUtility.exe"
+    ControlSend  "{0}", , "tkToolUtility.exe"
+    ControlSend  "{0}", , "tkToolUtility.exe"
+    ControlSend "{Enter}", , "tkToolUtility.exe"
+    Sleep 1000
+    ControlSend  "{1}", , "tkToolUtility.exe"
+    ControlSend  "{3}", , "tkToolUtility.exe"
+    ControlSend  "{4}", , "tkToolUtility.exe"
+    ControlSend "{Enter}", , "tkToolUtility.exe"
+    Sleep 300
+    ControlSend  "{9}", , "tkToolUtility.exe"
+    ControlSend  "{5}", , "tkToolUtility.exe"
+    ControlSend  "{0}", , "tkToolUtility.exe"
+    ControlSend "{Enter}", , "tkToolUtility.exe"
+    Sleep 300
+    ControlSend  "{1}", , "tkToolUtility.exe"
+    ControlSend  "{6}", , "tkToolUtility.exe"
+    ControlSend  "{1}", , "tkToolUtility.exe"
+    ControlSend "{Enter}", , "tkToolUtility.exe"
+    Sleep 300
+    ControlSend  "{y}", , "tkToolUtility.exe"
+
+}
+
+
+DefaultStartup(*){
+    ControlSend  "{1}", , "tkToolUtility.exe"
+    ControlSend  "{3}", , "tkToolUtility.exe"
+    ControlSend  "{3}", , "tkToolUtility.exe"
+    ControlSend "{Enter}", , "tkToolUtility.exe"
+    Sleep 300
+    ControlSend  "{3}", , "tkToolUtility.exe"
+    ControlSend  "{0}", , "tkToolUtility.exe"
+    ControlSend  "{0}", , "tkToolUtility.exe"
+    ControlSend "{Enter}", , "tkToolUtility.exe"
+    Sleep 1000
+    ControlSend  "{1}", , "tkToolUtility.exe"
+    ControlSend  "{3}", , "tkToolUtility.exe"
+    ControlSend  "{4}", , "tkToolUtility.exe"
+    ControlSend "{Enter}", , "tkToolUtility.exe"
+    Sleep 300
+    ControlSend  "{4}", , "tkToolUtility.exe"
+    ControlSend  "{5}", , "tkToolUtility.exe"
+    ControlSend  "{0}", , "tkToolUtility.exe"
+    ControlSend "{Enter}", , "tkToolUtility.exe"
+    Sleep 300
+    ControlSend  "{1}", , "tkToolUtility.exe"
+    ControlSend  "{6}", , "tkToolUtility.exe"
+    ControlSend  "{1}", , "tkToolUtility.exe"
+    ControlSend "{Enter}", , "tkToolUtility.exe"
+    Sleep 300
+    ControlSend  "{y}", , "tkToolUtility.exe"
+
+
+}
+
+UpdateQTID(*){
+    ControlSend  "{2}", , "tkToolUtility.exe"
+    ControlSend  "{4}", , "tkToolUtility.exe"
+    ControlSend  "{3}", , "tkToolUtility.exe"
+    ControlSend "{Enter}", , "tkToolUtility.exe"
+    Sleep 300
+    ControlSend  QTID.Value, , "tkToolUtility.exe"
+    ControlSend "{Enter}", , "tkToolUtility.exe"
+    Sleep 300
+    ControlSend  "{1}", , "tkToolUtility.exe"
+    ControlSend  "{6}", , "tkToolUtility.exe"
+    ControlSend  "{1}", , "tkToolUtility.exe"
+    ControlSend "{Enter}", , "tkToolUtility.exe"
+    Sleep 300
+    ControlSend  "{y}", , "tkToolUtility.exe"
+}
+
 
 SendKeystrokeFromListbox(*){
     SelectedOption := ComChoice.Text
@@ -176,6 +396,8 @@ COMPortSelect(*){
     Sleep 500
     ControlSend "{Enter}", , "tkToolUtility.exe"
 }
+
+
 
 
 PingNodes(*){
