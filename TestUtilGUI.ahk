@@ -5,7 +5,7 @@ SetWorkingDir(A_ScriptDir)
 iconPath := A_ScriptDir . "\\icoFiles\\toolsICO.ico"
 TraySetIcon (iconPath)
 
-MyGui := Gui(, "V1.1 TestUtilityGUI For Use With TestUtilityV40")
+MyGui := Gui(, "V2 TestUtilityGUI For Use With TestUtilityV40")
 
 SetDarkWindowFrame(MyGui)
 MyGui.Setfont("s10 cWhite")
@@ -30,7 +30,6 @@ Tab.Font := "Bold"
 Tab.UseTab("Q-telemetry")
 
 ;MyGui.Add("GroupBox", "W200 H100", "Communication optios")
-
 
 
 
@@ -61,12 +60,64 @@ BoardChoice.OnEvent("Change", BoardSelect)
 ;MyGui.Add("Button",, "DCDC Converter").OnEvent("Click", DCDC)
 
 
-
-
 ;Select Relay Board
 ;MyGui.Add("Text","x360 y116", "Press THIS Button for Relay Board")
 ;MyGui.Add("Button",,"Relay Board").OnEvent("Click", RelayBoard)
 
+;ShowText := MyGui.Add("Edit","","")
+;ShowText.SetFont("cBlack")
+
+;MyGui.Add("Button",,"test").OnEvent("Click", Checktest)
+
+;baseDir := A_ScriptDir . "\\log\\"
+
+;extension := ".txt"
+;constantpart := "solTest_"
+
+;dynamicPart := A_Now 
+
+;Checktest(*){
+;FileName := baseDir . constantpart . dynamicPart . extension 
+
+;if (FileExist(FileName)) {
+ ;   MsgBox "test"
+
+   ; FileContents := FileRead(FileName)
+   ; ShowText.Value := FileContents
+;}
+;else{
+;    MsgBox "nothing"
+;}
+
+
+
+
+;}
+;Solout := MyGui.Add("Text", "W200 H100")
+;Solout.SetFont("cBlack")
+;Soltest := "solTest_" . A_Now . ".txt"
+
+;ReadSolTest := FileRead(\\log\\Soltest)
+
+;FileTime := FileGetTime(Soltest, "C")
+
+;oldFileTime := 0
+
+;SetTimer(CheckForNewFile, 5000)
+
+;bufferTime := 3000
+
+;FileTime := FormatTime(, "yyyyMMdd_HHmmss")
+
+;CheckForNewFile(*) {
+;    Soltest := A_ScriptDir . "\log\solTest_" . A_Now . ".txt"
+;    FileTime := FileGetTime(Soltest, "M")
+;    if (FileTime > oldFileTime + bufferTime) {
+;        content := FileRead(Soltest)
+;        MyGui.Control("Solout", "", content)
+;        oldFileTime := FileTime
+ ;   }
+;}
 
 
 ;For Master Controller
@@ -80,6 +131,9 @@ QTID := MyGui.Add("Edit")
 QTID.SetFont("cBlack")
 
 MyGui.Add("Button","Default", "Update").OnEvent("Click", EnterToSaveQT)
+
+MyGui.Add("Text",, "Check Current Settings")
+MyGui.Add("Button",, "Check").OnEvent("Click", QTCheck)
 
 
 ;For DCDC
@@ -95,8 +149,16 @@ DCDCID := MyGui.Add("Edit")
 DCDCID.SetFont("cBlack")
 MyGui.Add("Button",, "Update").OnEvent("Click", UpdateDCDCID)
 
+
+MyGui.Add("Text",, "Check Current Settings")
+MyGui.Add("Button",, "Check").OnEvent("Click", QTCheck)
+
 MyGui.Add("Text",, "Save Changes")
-MyGui.Add("Button",, "Save").OnEvent("Click", DCDCSave)
+DCDCSaveButton := MyGui.Add("Button",, "Save")
+DCDCSaveButton.OnEvent("Click", DCDCSave)
+
+
+
 
 ;For Relay Board
 MyGui.Add("Text", "x750 y39", "For Relay Board")
@@ -104,6 +166,10 @@ MyGui.Add("Text",,"Update AltusID/Board ID")
 RBID := MyGui.Add("Edit")
 RBID.SetFont("cBlack")
 MyGui.Add("Button",, "Update").OnEvent("Click", UpdateRBID)
+
+MyGui.Add("Text",, "Check Current Settings")
+MyGui.Add("Button",, "Check").OnEvent("Click", QTCheck)
+
 
 ;For Solenoid Tab
 Tab.UseTab("Solenoid")
@@ -117,6 +183,7 @@ Tab.UseTab("Solenoid")
 MyGui.Add("Text",,"Select Communication Choice")
 ComChoice := MyGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM",])
 ;ComChoice.OnEvent("Change", SendKeystrokeFromListbox)
+ComChoice.Choose("PCAN")
 
 ;Manually choose com port number
 MyGui.Add("Text",, "Select COM Port Number")
@@ -132,42 +199,13 @@ MyGui.Add("Button",, "Browse").OnEvent("Click", OpenFiledialogSolenoid)
 ;Install FW to Solenoid
 MyGui.Add("Text",, "Install Firmware to Solenoid")
 MyGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
-MyGui.Add("Button",, "Install").OnEvent("Click", InstallTest)
+MyGui.Add("Button",, "Install").OnEvent("Click", InstallSolenoidEz)
 
 ;Access solenoid board
 MyGui.Add("Text",, "Get to Access Solenoid Menu")
-MyGui.Add("Button", "" ,"Go To Menu").OnEvent("Click", AccessTest)
+MyGui.Add("Button", "" ,"Go To Menu").OnEvent("Click", AccessSolenoidEz)
 
 
-InstallTest(*){
-    Enter()
-    SendKeystrokeFromListbox()
-    ;COMPortSelect()
-    InstallFWSolenoid()
-}
-
-AccessTest(*){
-    Enter()
-    SendKeystrokeFromListbox()
-    Keystroke1()
-    TestOption := ComChoice.Text
-    switch TestOption {
-        case "PCAN":
-            return
-        case "QPSK/MasterBox":
-            
-            ControlSend  "{C}", , "tkToolUtility.exe"
-            ControlSend  "{O}", , "tkToolUtility.exe"
-            ControlSend  "{M}", , "tkToolUtility.exe"
-            ControlSend  COMPort.Value ,, "tkToolUtility.exe"
-            Sleep 200
-            ControlSend  "{Enter}", , "tkToolUtility.exe"
-            Sleep 200
-            ControlSend  "{Enter}", , "tkToolUtility.exe"
-        case "OFDM":
-           return
-    }
-}
 
 
 
@@ -259,6 +297,8 @@ Tab.UseTab("TC Node")
 ;Selecting communication option for TC Node
 MyGui.Add("Text",,"Select Communication Choice")
 TCComChoice := MyGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM"])
+TCComChoice.Choose("PCAN")
+
 
 ;Manually choose com port number
 MyGui.Add("Text",, "Select COM Port Number")
@@ -290,6 +330,9 @@ TCAccess.OnEvent("Change", UseTCID)
 MyGui.Add("Text","x360 y39", "Change TC Node Usage")
 TCUsage := MyGui.AddDropDownList("W150", ["Upper PR STR - 0x30", "Lower PR STR - 0x31", "Upper TC - 0x32", "Lower TC - 0x33", "DDR TC SJR - 0x34"])
 TCUsage.OnEvent("Change", ChangeTCID)
+
+MyGui.Add("Text","" , "Check Current Settings")
+MyGui.Add("Button",,"Check").OnEvent("Click", CheckCal)
 
 ;Text for IDs
 MyGui.Add("Text","x600 y39", "Update Altus/Board ID")
@@ -328,9 +371,45 @@ CheckProgram(*){
             ExitApp
             Sleep 500
             SetTimer CheckProgram, 0
+            ;SetTimer CheckForNewFile, 0
         }
         
 }
+
+InstallSolenoidEz(*){
+    Enter()
+    SendKeystrokeFromListbox()
+    ;COMPortSelect()
+    InstallFWSolenoid()
+    Sleep 909000
+    ControlSend  "{n}", , "tkToolUtility.exe"
+    Sleep 200
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+ AccessSolenoidEz(*){
+    Enter()
+    SendKeystrokeFromListbox()
+    Keystroke1()
+    TestOption := ComChoice.Text
+    switch TestOption {
+        case "PCAN":
+            return
+        case "QPSK/MasterBox":
+            
+            ControlSend  "{C}", , "tkToolUtility.exe"
+            ControlSend  "{O}", , "tkToolUtility.exe"
+            ControlSend  "{M}", , "tkToolUtility.exe"
+            ControlSend  COMPort.Value ,, "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+        case "OFDM":
+           return
+    }
+    
+}
+
 
 QTCOMPortSelect(*){
 
@@ -487,7 +566,6 @@ DefaultStartup(*){
     ControlSend  "{0}", , "tkToolUtility.exe"
     ControlSend "{Enter}", , "tkToolUtility.exe"
     Sleep 300
-    
 }
 
 UpdateMCID(*){
@@ -1445,7 +1523,16 @@ DCDCSave(*){
     ControlSend  "{1}", , "tkToolUtility.exe"
     ControlSend  "{6}", , "tkToolUtility.exe"
     ControlSend  "{0}", , "tkToolUtility.exe"
+
     ControlSend "{Enter}", , "tkToolUtility.exe"
     Sleep 300
     ControlSend  "{y}", , "tkToolUtility.exe"
+
+}
+
+QTCheck(*){
+    ControlSend "{2}" ,, "tkToolUtility.exe"
+    ControlSend "{4}" ,, "tkToolUtility.exe"
+    ControlSend "{1}" ,, "tkToolUtility.exe"
+    ControlSend "{Enter}" ,, "tkToolUtility.exe"
 }
