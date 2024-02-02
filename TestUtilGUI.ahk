@@ -12,6 +12,39 @@ MyGui.Setfont("s10 cWhite")
 MyGui.BackColor := "424242"
 WinMove(0,0,,, "ahk_exe tkToolUtility.exe")
 
+CmdExist(*){
+    if WinExist("cmd.exe")
+        WinHide "Ahk_exe cmd.exe"
+    SetTimer CmdExist, 0
+
+}
+
+FileAppend("test","ComPorts.txt",)
+
+RunWaitOne(command) {
+    shell := ComObject("WScript.Shell")
+    
+    exec := shell.Exec(A_ComSpec " /C " command )
+    
+    output := exec.StdOut.ReadAll()
+    SetTimer CmdExist, 10
+    
+
+    output := StrReplace(output, ":","")
+    FileDelete("ComPorts.txt")
+    
+
+    
+
+    FileAppend(output "`n", "ComPorts.txt", )
+
+    }
+    
+
+
+output := RunWaitOne("mode")
+
+
 
 SetDarkWindowFrame(hwnd, boolEnable:=1) {
     hwnd := WinExist(hwnd)
@@ -21,6 +54,20 @@ SetDarkWindowFrame(hwnd, boolEnable:=1) {
         attr := 20
     DllCall("dwmapi\DwmSetWindowAttribute", "ptr", hwnd, "int", attr, "int*", boolEnable, "int", 4)
 }
+
+Text := FileRead("ComPorts.txt")
+
+Lines := StrSplit(Text, "`n")
+
+Words := []
+
+for index, line in Lines {
+    if (RegExMatch(line, "COM\d+", &match)) {
+        Words.push(match[])
+    }
+}
+
+
 
 ;Create tabs
 Tab := MyGui.Add("Tab3",, ["Q-Telemetry", "Solenoid", "TC Node"])
@@ -39,13 +86,16 @@ QTComChoice := MyGui.AddDropDownList("W80", ["QPSK", "OFDM"])
 QTComChoice.Choose("QPSK")
 
 MyGui.Add("Text",, "Select COM Port Number")
-QTCOMPort := MyGui.Add("Edit", "W70")
-QTCOMPort.SetFont("cBlack")
-MyGui.Add("UpDown") 
+QTCOMPort := MyGui.AddDropDownList("W75", Words)
+;QTCOMPort.SetFont("cBlack")
+;MyGui.Add("UpDown") 
 ;MyGui.Add("Button",, "OK").OnEvent("Click", QTCOMPortSelect)
 
+RefreshQT := MyGui.Add("Button","x121 y114", "Refresh")
+RefreshQT.OnEvent("Click", Refreshbut)
+
 ;Choose Board
-MyGui.Add("Text",, "Choose Board Type")
+MyGui.Add("Text","x26 y147", "Choose Board Type")
 BoardChoice := MyGui.AddDropDownList("W150", ["Master Controller", "DCDC Converter", "Relay Board"])
 BoardChoice.OnEvent("Change", BoardSelect)
 
@@ -179,18 +229,107 @@ Tab.UseTab("Solenoid")
 ;SolenoidButton := MyGui.Add("Button", ,"Solenoid", )
 ;.OnEvent("Click", enter,)
 
+
+
 ;Selecting communication option for solenoid
 MyGui.Add("Text",,"Select Communication Choice")
 ComChoice := MyGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM",])
 ;ComChoice.OnEvent("Change", SendKeystrokeFromListbox)
 ComChoice.Choose("PCAN")
 
+
 ;Manually choose com port number
 MyGui.Add("Text",, "Select COM Port Number")
-COMPort := MyGui.Add("Edit", "W70")
-COMPort.SetFont("cBlack")
-MyGui.Add("UpDown") 
+COMPort := MyGui.AddDropDownList("W75", Words)
+;COMPort.SetFont("cBlack")
+;MyGui.Add("UpDown") 
+
+Refresh := MyGui.Add("Button","x121 y114", "Refresh")
+Refresh.OnEvent("Click", Refreshbut)
+Refreshbut(*){
+FileAppend("test","ComPorts.txt",)
+
+COMPort.Delete()
+
+RunWaitOne(command) {
+    shell := ComObject("WScript.Shell")
+    
+    exec := shell.Exec(A_ComSpec " /C " command )
+    
+    output := exec.StdOut.ReadAll()
+    SetTimer CmdExist, 10
+    
+    output := StrReplace(output, ":","")
+    FileDelete("ComPorts.txt")
+    
+    FileAppend(output "`n", "ComPorts.txt", )
+    }
+    
+output := RunWaitOne("mode")
+
+Text := FileRead("ComPorts.txt")
+
+Lines := StrSplit(Text, "`n")
+
+Words := []
+
+for index, line in Lines {
+    if (RegExMatch(line, "COM\d+", &match)) {
+        Words.push(match[])
+    }
+}
+COMPort.Add(Words)
+
+}
+
+
 ;MyGui.Add("Button",, "OK").OnEvent("Click", COMPortSelect)
+
+MyGui.Add("Text","x26 y147", "FW Selected for Installing")
+SolFW := MyGui.Add("Edit")
+SolFW.SetFont("cBlack")
+
+file1Contents := FileRead("hexFiles_SOL\SOL_leinApp_bl.hex")
+Folder := ("Solenoid FW\Main FW - SM470 Processor\*.hex")
+
+Loop Files Folder, "F"
+    {
+
+        FilePath := A_LoopFileFullPath
+
+        CurrentFile := FileRead(FilePath)
+if (file1Contents == CurrentFile) 
+    {
+    FWSolenoidFile := A_LoopFileName
+        SolFW.Text := FWSolenoidFile
+
+    break
+    }
+
+
+    }
+
+
+;file2Contents := FileRead("\\Solenoid FW\Main FW - SM470 Processor\OFF-054531_30.hex\\")
+CheckFWLoopSol(*){
+Loop Files Folder, "F"
+    {
+        file1Contents := FileRead("hexFiles_SOL\SOL_leinApp_bl.hex")
+        FilePath := A_LoopFileFullPath
+
+        CurrentFile := FileRead(FilePath)
+if (file1Contents == CurrentFile) 
+    {
+    FWSolenoidFile := A_LoopFileName
+        SolFW.Text := FWSolenoidFile
+        FWSolenoidFile := ""
+        CurrentFile := ""
+    break
+    }
+
+
+    }
+}
 
 ;Browse for FW for Solenoid
 MyGui.Add("Text",, "Select Firmware Version")
@@ -200,6 +339,10 @@ MyGui.Add("Button",, "Browse").OnEvent("Click", OpenFiledialogSolenoid)
 MyGui.Add("Text",, "Install Firmware to Solenoid")
 MyGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
 MyGui.Add("Button",, "Install").OnEvent("Click", InstallSolenoidEz)
+
+
+
+
 
 ;Access solenoid board
 MyGui.Add("Text",, "Get to Access Solenoid Menu")
@@ -237,7 +380,7 @@ SolenoidSensors.OnEvent("Change", SensorIDs)
 MyGui.Add("Text","" , "Check Current Settings")
 MyGui.Add("Button",,"Check").OnEvent("Click", CheckSet)
 
-MyGui.Add("Text","" , "Calibration Table")
+MyGui.Add("Text","" , "Check Calibration Table")
 MyGui.Add("Button",,"Check").OnEvent("Click", CheckCal)
 
 ;Test Solenoid
@@ -302,12 +445,19 @@ TCComChoice.Choose("PCAN")
 
 ;Manually choose com port number
 MyGui.Add("Text",, "Select COM Port Number")
-TCCOMPort := MyGui.Add("Edit", "W70")
-TCCOMPort.SetFont("cBlack")
-MyGui.Add("UpDown") 
+TCCOMPort := MyGui.AddDropDownList("W75", Words)
+;TCCOMPort.SetFont("cBlack")
+;MyGui.Add("UpDown") 
+
+RefreshTC := MyGui.Add("Button","x121 y114", "Refresh")
+RefreshTC.OnEvent("Click", Refreshbut)
+
+MyGui.Add("Text","x26 y147", "FW Selected for Installing")
+TCFW := MyGui.Add("Edit")
+TCFW.SetFont("cBlack")
 
 ;Browse for FW for TC Node
-MyGui.Add("Text",, "Select Firmware Version")
+MyGui.Add("Text","", "Select Firmware Version")
 MyGui.Add("Button",, "Browse").OnEvent("Click", OpenFiledialogTC)
 
 ;Install FW to TC Node
@@ -382,10 +532,22 @@ InstallSolenoidEz(*){
     ;COMPortSelect()
     InstallFWSolenoid()
     Sleep 909000
+    Sleep 5000
     ControlSend  "{n}", , "tkToolUtility.exe"
-    Sleep 200
+    SetTimer CheckProgram, 0
+    Sleep 1000
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+    Sleep 1000
+    
+    Run "tkToolUtility.exe"
+    Sleep 500
+    SetTimer CheckProgram, 500
+    Sleep 500
+    WinMove(0,0,,, "ahk_exe tkToolUtility.exe")
+    Sleep 500 
     ControlSend  "{Enter}", , "tkToolUtility.exe"
 }
+
  AccessSolenoidEz(*){
     Enter()
     SendKeystrokeFromListbox()
@@ -396,10 +558,10 @@ InstallSolenoidEz(*){
             return
         case "QPSK/MasterBox":
             
-            ControlSend  "{C}", , "tkToolUtility.exe"
-            ControlSend  "{O}", , "tkToolUtility.exe"
-            ControlSend  "{M}", , "tkToolUtility.exe"
-            ControlSend  COMPort.Value ,, "tkToolUtility.exe"
+            ;ControlSend  "{C}", , "tkToolUtility.exe"
+            ;ControlSend  "{O}", , "tkToolUtility.exe"
+            ;ControlSend  "{M}", , "tkToolUtility.exe"
+            ControlSend  COMPort.Text ,, "tkToolUtility.exe"
             Sleep 200
             ControlSend  "{Enter}", , "tkToolUtility.exe"
             Sleep 200
@@ -413,10 +575,10 @@ InstallSolenoidEz(*){
 
 QTCOMPortSelect(*){
 
-    ControlSend  "{C}", , "tkToolUtility.exe"
-    ControlSend  "{O}", , "tkToolUtility.exe"
-    ControlSend  "{M}", , "tkToolUtility.exe"
-    ControlSend  QTCOMPort.Value ,, "tkToolUtility.exe"
+    ;ControlSend  "{C}", , "tkToolUtility.exe"
+    ;ControlSend  "{O}", , "tkToolUtility.exe"
+    ;ControlSend  "{M}", , "tkToolUtility.exe"
+    ControlSend  QTCOMPort.Text ,, "tkToolUtility.exe"
     Sleep 100
     ControlSend "{Enter}", , "tkToolUtility.exe"
     Sleep 500
@@ -678,10 +840,10 @@ SendKeystrokeFromListbox(*){
 
 COMPortSelect(*){
 
-    ControlSend  "{C}", , "tkToolUtility.exe"
-    ControlSend  "{O}", , "tkToolUtility.exe"
-    ControlSend  "{M}", , "tkToolUtility.exe"
-    ControlSend  COMPort.Value ,, "tkToolUtility.exe"
+    ;ControlSend  "{C}", , "tkToolUtility.exe"
+    ;ControlSend  "{O}", , "tkToolUtility.exe"
+    ;ControlSend  "{M}", , "tkToolUtility.exe"
+    ControlSend  COMPort.Text ,, "tkToolUtility.exe"
     Sleep 100
     ControlSend "{Enter}", , "tkToolUtility.exe"
     Sleep 500
@@ -690,10 +852,10 @@ COMPortSelect(*){
 
 TCCOMPortSelect(*){
 
-    ControlSend  "{C}", , "tkToolUtility.exe"
-    ControlSend  "{O}", , "tkToolUtility.exe"
-    ControlSend  "{M}", , "tkToolUtility.exe"
-    ControlSend  TCCOMPort.Value ,, "tkToolUtility.exe"
+    ;ControlSend  "{C}", , "tkToolUtility.exe"
+    ;ControlSend  "{O}", , "tkToolUtility.exe"
+    ;ControlSend  "{M}", , "tkToolUtility.exe"
+    ControlSend  TCCOMPort.Text ,, "tkToolUtility.exe"
     Sleep 100
     ControlSend "{Enter}", , "tkToolUtility.exe"
     Sleep 500
@@ -766,8 +928,19 @@ OpenFiledialogSolenoid(*){
         destinationFile := destinationDir . newName
 
         FileCopy(SelectedFWFile, destinationFile, 1)
+        
+        if (FileExist(destinationFile))
+            {
+            
+                
+                Sleep 1000
+                CheckFWLoopSol()
+
+            }
+
 
     }
+
 }
 
 InstallFWSolenoid(*){
@@ -787,10 +960,10 @@ InstallFWSolenoid(*){
         case "QPSK/MasterBox":
         Keystroke3()
         Sleep 100
-        ControlSend  "{C}", , "tkToolUtility.exe"
-        ControlSend  "{O}", , "tkToolUtility.exe"
-        ControlSend  "{M}", , "tkToolUtility.exe"
-        ControlSend  COMPort.Value ,, "tkToolUtility.exe"
+        ;ControlSend  "{C}", , "tkToolUtility.exe"
+       ; ControlSend  "{O}", , "tkToolUtility.exe"
+        ;ControlSend  "{M}", , "tkToolUtility.exe"
+        ControlSend  COMPort.Text ,, "tkToolUtility.exe"
         Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
         Sleep 200
@@ -1161,14 +1334,16 @@ InstallFWTC(*){
         ControlSend "{N}",, "tkToolUtility.exe"
         Sleep 100
         ControlSend  "{Enter}", , "tkToolUtility.exe"
+        ReopenAfterIns()
+
         case "QPSK/MasterBox":
         Keystroke3()
         Sleep 100
         Keystroke3()
-        ControlSend  "{C}", , "tkToolUtility.exe"
-        ControlSend  "{O}", , "tkToolUtility.exe"
-        ControlSend  "{M}", , "tkToolUtility.exe"
-        ControlSend  TCCOMPort.Value ,, "tkToolUtility.exe"
+        ;ControlSend  "{C}", , "tkToolUtility.exe"
+        ;ControlSend  "{O}", , "tkToolUtility.exe"
+        ;ControlSend  "{M}", , "tkToolUtility.exe"
+        ControlSend  TCCOMPort.Text ,, "tkToolUtility.exe"
         Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
         Sleep 200
@@ -1179,9 +1354,30 @@ InstallFWTC(*){
         ControlSend "{N}",, "tkToolUtility.exe"
         Sleep 100
         ControlSend  "{Enter}", , "tkToolUtility.exe"
+        ReopenAfterIns()
+
         case "OFDM":
             Keystroke3()
     }
+}
+
+
+ReopenAfterIns(*){
+    Sleep 89000
+    Sleep 5000
+    ControlSend  "{n}", , "tkToolUtility.exe"
+    SetTimer CheckProgram, 0
+    Sleep 1000
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+    Sleep 1000
+    
+    Run "tkToolUtility.exe"
+    Sleep 500
+    SetTimer CheckProgram, 500
+    Sleep 500
+    WinMove(0,0,,, "ahk_exe tkToolUtility.exe")
+    Sleep 500 
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
 }
 
 TCMenu(*){
@@ -1197,10 +1393,10 @@ TCMenu(*){
             Keystroke2()
             Sleep 200
             Keystroke1()
-            ControlSend  "{C}", , "tkToolUtility.exe"
-            ControlSend  "{O}", , "tkToolUtility.exe"
-            ControlSend  "{M}", , "tkToolUtility.exe"
-            ControlSend  TCCOMPort.Value ,, "tkToolUtility.exe"
+            ;ControlSend  "{C}", , "tkToolUtility.exe"
+           ; ControlSend  "{O}", , "tkToolUtility.exe"
+           ; ControlSend  "{M}", , "tkToolUtility.exe"
+            ControlSend  TCCOMPort.Text ,, "tkToolUtility.exe"
             Sleep 200
             ControlSend  "{Enter}", , "tkToolUtility.exe"
             Sleep 200
