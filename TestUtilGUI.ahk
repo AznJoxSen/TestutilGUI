@@ -5,7 +5,7 @@ SetWorkingDir(A_ScriptDir)
 iconPath := A_ScriptDir . "\\icoFiles\\toolsICO.ico"
 TraySetIcon (iconPath)
 
-MyGui := Gui(, "V2 TestUtilityGUI For Use With TestUtilityV40")
+MyGui := Gui(, "V2.1 TestUtilityGUI For Use With TestUtilityV40")
 
 SetDarkWindowFrame(MyGui)
 MyGui.Setfont("s10 cWhite")
@@ -246,7 +246,10 @@ COMPort := MyGui.AddDropDownList("W75", Words)
 
 Refresh := MyGui.Add("Button","x121 y114", "Refresh")
 Refresh.OnEvent("Click", Refreshbut)
-Refreshbut(*){
+
+Refreshbut(*)
+{
+
 FileAppend("test","ComPorts.txt",)
 
 COMPort.Delete()
@@ -286,7 +289,7 @@ COMPort.Add(Words)
 ;MyGui.Add("Button",, "OK").OnEvent("Click", COMPortSelect)
 
 MyGui.Add("Text","x26 y147", "FW Selected for Installing")
-SolFW := MyGui.Add("Edit")
+SolFW := MyGui.Add("Edit", "ReadOnly")
 SolFW.SetFont("cBlack")
 
 file1Contents := FileRead("hexFiles_SOL\SOL_leinApp_bl.hex")
@@ -335,6 +338,10 @@ if (file1Contents == CurrentFile)
 MyGui.Add("Text",, "Select Firmware Version")
 MyGui.Add("Button",, "Browse").OnEvent("Click", OpenFiledialogSolenoid)
 
+MyGui.Add("Text",, "Choose a Solenoid if more than one connected")
+ChooseSolFWIns := MyGui.AddDropDownList("W170", ["FlexDrive - 0x12", "MotorPump - 0x13", "CompactTracMP - 0x13", "SJR - 0x14", "PrimeStroker - 0x15", "ShortStroker - 0x15", "ShortStrokerV2 - 0x15", "Puncher - 0x16"])
+
+
 ;Install FW to Solenoid
 MyGui.Add("Text",, "Install Firmware to Solenoid")
 MyGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
@@ -358,23 +365,23 @@ MyGui.Add("Button",, "Rescan").OnEvent("Click", PingNodes)
 
 ;Choose what solenoid to access
 MyGui.Add("Text",, "Choose Solenoid Board")
-SolenoidAccess := MyGui.AddDropDownList("W150", ["FlexDrive", "MotorPump", "CompactTracMP", "SJR", "PrimeStroker", "ShortStroker", "ShortStrokerV2", "Puncher"])
+SolenoidAccess := MyGui.AddDropDownList("W170", ["FlexDrive - 0x12", "MotorPump - 0x13", "CompactTracMP - 0x13", "SJR - 0x14", "PrimeStroker - 0x15", "ShortStroker - 0x15", "ShortStrokerV2 - 0x15", "Puncher - 0x16"])
 SolenoidAccess.OnEvent("Change", SolenoidIDs)
 ;CBS_DISABLENOSCROLL
 
 ;Changing Solenoid Usage
 MyGui.Add("Text","x360 y39", "Change Solenoid Usage")
-SolenoidUse := MyGui.AddDropDownList("W150", ["FlexDrive", "MotorPump", "CompactTracMP", "SJR", "PrimeStroker", "ShortStroker", "ShortStrokerV2", "Puncher"])
+SolenoidUse := MyGui.AddDropDownList("W170", ["FlexDrive - 0x12", "MotorPump - 0x13", "CompactTracMP - 0x13", "SJR - 0x14", "PrimeStroker - 0x15", "ShortStroker - 0x15", "ShortStrokerV2 - 0x15", "Puncher - 0x16"])
 SolenoidUse.OnEvent("Change", SolenoidUsage)
 
 ;Changing sensor types
 MyGui.Add("Text","" , "Choose Sensor Type")
-SensorType := MyGui.AddDropDownList("W150",["HallEffect", "QuadEncoder", "Mech", "Unknown"])
+SensorType := MyGui.AddDropDownList("W170",["HallEffect", "QuadEncoder", "Mech", "Unknown"])
 SensorType.OnEvent("Change", SensorTypeChange)
 
 ;Changing sensor values
 MyGui.Add("Text","" , "Update Sensor Data For:")
-SolenoidSensors := MyGui.AddDropDownList("W150", ["DDP3 '9a' Linear", "DDP3 '9b' Linear", "Comp '10' Linear", "AncUpper '13a' Quad", "AncLower '13b' Quad", "Sensor6 'Not in Use'", "Sensor7 'Not in Use'"])
+SolenoidSensors := MyGui.AddDropDownList("W170", ["DDP3 '9a' Linear", "DDP3 '9b' Linear", "Comp '10' Linear", "AncUpper '13a' Quad", "AncLower '13b' Quad", "Sensor6 'Not in Use'", "Sensor7 'Not in Use'"])
 SolenoidSensors.OnEvent("Change", SensorIDs)
 
 MyGui.Add("Text","" , "Check Current Settings")
@@ -405,7 +412,7 @@ MyGui.Add("Text",, "Update Tool ID")
 
 ;Input edit box for sensor values
 MyGui.Add("Text","x750 y39","Add Sensor values")
-Sensorm := MyGui.Add("Edit")
+Sensorm := MyGui.Add("Edit",)
 Sensorb := MyGui.Add("Edit")
 SensorCb := MyGui.Add("Edit")
 SensorCm := MyGui.Add("Edit")
@@ -453,12 +460,53 @@ RefreshTC := MyGui.Add("Button","x121 y114", "Refresh")
 RefreshTC.OnEvent("Click", Refreshbut)
 
 MyGui.Add("Text","x26 y147", "FW Selected for Installing")
-TCFW := MyGui.Add("Edit")
+TCFW := MyGui.Add("Edit", "ReadOnly")
 TCFW.SetFont("cBlack")
+
+file2Contents := FileRead("hexFiles_TC\TC_leinApp_bl.hex")
+TCFolder := ("TC FW\Main FW\*.hex")
+
+Loop Files TCFolder, "F"
+    {
+        FilePath2 := A_LoopFileFullPath
+        CurrentFile2 := FileRead(FilePath2)
+
+if (file2Contents == CurrentFile2) 
+    {      
+    FWTCFile := A_LoopFileName
+        TCFW.Text := FWTCFile
+
+    break
+    }
+    }
+
+CheckFWLoopTC(*){
+Loop Files TCFolder, "F"
+    {
+        file2Contents := FileRead("hexFiles_TC\TC_leinApp_bl.hex")
+        FilePath2 := A_LoopFileFullPath
+
+        CurrentFile2 := FileRead(FilePath2)
+if (file2Contents == CurrentFile2) 
+    {
+    FWTCFile := A_LoopFileName
+        TCFW.Text := FWTCFile
+        FWTCFile := ""
+        CurrentFile2 := ""
+    break
+    }
+    }
+}
+
+
+
 
 ;Browse for FW for TC Node
 MyGui.Add("Text","", "Select Firmware Version")
 MyGui.Add("Button",, "Browse").OnEvent("Click", OpenFiledialogTC)
+
+MyGui.Add("Text",, "Choose a TC Node if more than one connected")
+ChooseTCFWIns := MyGui.AddDropDownList("W160", ["Upper PR STR - 0x30", "Lower PR STR - 0x31", "Upper TC - 0x32", "Lower TC - 0x33", "DDR TC SJR - 0x34"])
 
 ;Install FW to TC Node
 MyGui.Add("Text",, "Install Firmware to TC Node")
@@ -474,11 +522,11 @@ MyGui.Add("Text","", "Rescan Nodes If Necessecary")
 MyGui.Add("Button",, "Rescan").OnEvent("Click", PingNodes)
 
 MyGui.Add("Text",, "Choose TC Node")
-TCAccess := MyGui.AddDropDownList("W150", ["Upper PR STR - 0x30", "Lower PR STR - 0x31", "Upper TC - 0x32", "Lower TC - 0x33", "DDR TC SJR - 0x34"])
+TCAccess := MyGui.AddDropDownList("W160", ["Upper PR STR - 0x30", "Lower PR STR - 0x31", "Upper TC - 0x32", "Lower TC - 0x33", "DDR TC SJR - 0x34"])
 TCAccess.OnEvent("Change", UseTCID)
 
 MyGui.Add("Text","x360 y39", "Change TC Node Usage")
-TCUsage := MyGui.AddDropDownList("W150", ["Upper PR STR - 0x30", "Lower PR STR - 0x31", "Upper TC - 0x32", "Lower TC - 0x33", "DDR TC SJR - 0x34"])
+TCUsage := MyGui.AddDropDownList("W160", ["Upper PR STR - 0x30", "Lower PR STR - 0x31", "Upper TC - 0x32", "Lower TC - 0x33", "DDR TC SJR - 0x34"])
 TCUsage.OnEvent("Change", ChangeTCID)
 
 MyGui.Add("Text","" , "Check Current Settings")
@@ -882,35 +930,35 @@ SolenoidIDs(*){
     Hex0x1()
     Sleep 250
     Switch SolenoidIDAccess {
-        case "FlexDrive": 
+        case "FlexDrive - 0x12": 
         Keystroke2()
         Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
-        case "MotorPump":
+        case "MotorPump - 0x13":
         Keystroke3()
         Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
-        case "CompactTracMP":
+        case "CompactTracMP - 0x13":
         Keystroke3()
         Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
-        case "SJR":
+        case "SJR - 0x14":
         Keystroke4()
         Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
-        case "PrimeStroker":
+        case "PrimeStroker - 0x15":
         Keystroke5()
         Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
-        case "ShortStroker":
+        case "ShortStroker - 0x15":
         Keystroke5()
         Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
-        case "ShortStrokerV2":
+        case "ShortStrokerV2 - 0x15":
         Keystroke5()
         Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
-        case "Puncher":
+        case "Puncher - 0x16":
         Keystroke6()
         Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
@@ -932,7 +980,6 @@ OpenFiledialogSolenoid(*){
         if (FileExist(destinationFile))
             {
             
-                
                 Sleep 1000
                 CheckFWLoopSol()
 
@@ -945,6 +992,7 @@ OpenFiledialogSolenoid(*){
 
 InstallFWSolenoid(*){
     SelectedCom := ComChoice.Text
+    SolChosen := ChooseSolFWIns.Text
     switch SelectedCom {
         case "PCAN":
         ControlSend "{3}",, "tkToolUtility.exe"
@@ -952,11 +1000,59 @@ InstallFWSolenoid(*){
         Sleep 100 
         ControlSend "{N}",, "tkToolUtility.exe"
         Sleep 100 
-        ControlSend "{N}",, "tkToolUtility.exe"
-        Sleep 100 
-        ControlSend "{N}",, "tkToolUtility.exe"
-        Sleep 100
-        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Switch SolChosen {
+            Case "":
+            ControlSend "{N}",, "tkToolUtility.exe"
+            InsSID()
+            case "FlexDrive - 0x12": 
+            ControlSend  "{y}", , "tkToolUtility.exe"
+            Hex0x1()
+            Keystroke2()
+            Sleep 200
+            InsSID()
+            case "MotorPump - 0x13":
+            ControlSend  "{y}", , "tkToolUtility.exe"
+            Hex0x1()
+            Keystroke3()
+            Sleep 200
+            InsSID()
+            case "CompactTracMP - 0x13":
+            ControlSend  "{y}", , "tkToolUtility.exe"
+            Hex0x1()
+            Keystroke3()
+            Sleep 200
+            InsSID()
+            case "SJR - 0x14":
+            ControlSend  "{y}", , "tkToolUtility.exe"
+            Hex0x1()
+            Keystroke4()
+            Sleep 200
+            InsSID()
+            case "PrimeStroker - 0x15":
+            ControlSend  "{y}", , "tkToolUtility.exe"
+            Hex0x1()
+            Keystroke5()
+            Sleep 200
+            InsSID()
+            case "ShortStroker - 0x15":
+            ControlSend  "{y}", , "tkToolUtility.exe"
+            Hex0x1()
+            Keystroke5()
+            Sleep 200
+            InsSID()
+            case "ShortStrokerV2 - 0x15":
+            ControlSend  "{y}", , "tkToolUtility.exe"
+            Hex0x1()
+            Keystroke5()
+            Sleep 200
+            InsSID()
+            case "Puncher - 0x16":
+            ControlSend  "{y}", , "tkToolUtility.exe"
+            Hex0x1()
+            Keystroke6()
+            Sleep 200
+            InsSID()
+        }
         case "QPSK/MasterBox":
         Keystroke3()
         Sleep 100
@@ -971,9 +1067,59 @@ InstallFWSolenoid(*){
         Sleep 100 
         ControlSend "{N}",, "tkToolUtility.exe"
         Sleep 100 
-        ControlSend "{N}",, "tkToolUtility.exe"
-        Sleep 100 
-        ControlSend "{N}",, "tkToolUtility.exe"
+        Switch SolChosen {
+            Case "":
+            ControlSend "{N}",, "tkToolUtility.exe"
+            InsSID()
+            case "FlexDrive - 0x12": 
+            ControlSend  "{y}", , "tkToolUtility.exe"
+            Hex0x1()
+            Keystroke2()
+            Sleep 200
+            InsSID()
+            case "MotorPump - 0x13":
+            ControlSend  "{y}", , "tkToolUtility.exe"
+            Hex0x1()
+            Keystroke3()
+            Sleep 200
+            InsSID()
+            case "CompactTracMP - 0x13":
+            ControlSend  "{y}", , "tkToolUtility.exe"
+            Hex0x1()
+            Keystroke3()
+            Sleep 200
+            InsSID()
+            case "SJR - 0x14":
+            ControlSend  "{y}", , "tkToolUtility.exe"
+            Hex0x1()
+            Keystroke4()
+            Sleep 200
+            InsSID()
+            case "PrimeStroker - 0x15":
+            ControlSend  "{y}", , "tkToolUtility.exe"
+            Hex0x1()
+            Keystroke5()
+            Sleep 200
+            InsSID()
+            case "ShortStroker - 0x15":
+            ControlSend  "{y}", , "tkToolUtility.exe"
+            Hex0x1()
+            Keystroke5()
+            Sleep 200
+            InsSID()
+            case "ShortStrokerV2 - 0x15":
+            ControlSend  "{y}", , "tkToolUtility.exe"
+            Hex0x1()
+            Keystroke5()
+            Sleep 200
+            InsSID()
+            case "Puncher - 0x16":
+            ControlSend  "{y}", , "tkToolUtility.exe"
+            Hex0x1()
+            Keystroke6()
+            Sleep 200
+            InsSID()
+        }
         Sleep 100
         ControlSend  "{Enter}", , "tkToolUtility.exe"
         case "OFDM":
@@ -981,6 +1127,11 @@ InstallFWSolenoid(*){
     }
 }
 
+InsSID(*){
+    ControlSend "{n}",, "tkToolUtility.exe"     
+    Sleep 200
+    ControlSend  "{Enter}", , "tkToolUtility.exe"    
+}
 
 SolenoidUsage(*){
     SolenoidSelected := SolenoidUse.Text
@@ -988,7 +1139,7 @@ SolenoidUsage(*){
     Hex0xF4()
     Sleep 200
     switch SolenoidSelected {
-        case "FlexDrive": 
+        case "FlexDrive - 0x12": 
         Keystroke3()
         Sleep 200
         ControlSend  "{y}", , "tkToolUtility.exe"
@@ -996,7 +1147,7 @@ SolenoidUsage(*){
         Hex0xCB()
         Sleep 200
         ControlSend  "{y}", , "tkToolUtility.exe"
-        case "MotorPump":
+        case "MotorPump - 0x13":
         Keystroke1()
         Sleep 200
         ControlSend  "{n}", , "tkToolUtility.exe"
@@ -1006,7 +1157,7 @@ SolenoidUsage(*){
         Hex0xCB()
         Sleep 200
         ControlSend  "{y}", , "tkToolUtility.exe"
-        case "CompactTracMP":
+        case "CompactTracMP - 0x13":
         Keystroke2()
         Sleep 200
         ControlSend  "{y}", , "tkToolUtility.exe"
@@ -1014,7 +1165,7 @@ SolenoidUsage(*){
         Hex0xCB()
         Sleep 200
         ControlSend  "{y}", , "tkToolUtility.exe"
-        case "SJR":
+        case "SJR - 0x14":
         Keystroke4()
         Sleep 200
         ControlSend  "{y}", , "tkToolUtility.exe"
@@ -1022,7 +1173,7 @@ SolenoidUsage(*){
         Hex0xCB()
         Sleep 200
         ControlSend  "{y}", , "tkToolUtility.exe"
-        case "PrimeStroker":
+        case "PrimeStroker - 0x15":
         Keystroke5()
         Sleep 200
         ControlSend  "{y}", , "tkToolUtility.exe"
@@ -1030,7 +1181,7 @@ SolenoidUsage(*){
         Hex0xCB()
         Sleep 200
         ControlSend  "{y}", , "tkToolUtility.exe"
-        case "ShortStroker":
+        case "ShortStroker - 0x15":
         Keystroke6()
         Sleep 200
         ControlSend  "{y}", , "tkToolUtility.exe"
@@ -1038,7 +1189,7 @@ SolenoidUsage(*){
         Hex0xCB()
         Sleep 200
         ControlSend  "{y}", , "tkToolUtility.exe"
-        case "ShortStrokerV2":
+        case "ShortStrokerV2 - 0x15":
         Keystroke7()
         Sleep 200
         ControlSend  "{y}", , "tkToolUtility.exe"
@@ -1046,7 +1197,7 @@ SolenoidUsage(*){
         Hex0xCB()
         Sleep 200
         ControlSend  "{y}", , "tkToolUtility.exe"
-        case "Puncher":
+        case "Puncher - 0x16":
         Keystroke8()
         Sleep 200
         ControlSend  "{y}", , "tkToolUtility.exe"
@@ -1118,10 +1269,10 @@ SensorIDs(*){
             Keystroke2()
         Case "Sensor6 'Not in Use'":
             ;Keystroke6()
-            MsgBox "Don't Use this DumbDumb"
+            MsgBox "Not in use currently"
         Case "Sensor7 'Not in Use'":
             ;Keystroke7()
-            MsgBox "Don't Use this DumbDumb"
+            MsgBox "Not in use currently"
 
 }
 }
@@ -1210,9 +1361,9 @@ UpdateSensorValues(*){
             Sleep 100
             ControlSend  "{y}", , "tkToolUtility.exe"
         Case "Sensor6 'Not in Use'":
-            MsgBox "Don't Use this DumbDumb"
+            MsgBox "Not in use currently"
         Case "Sensor7 'Not in Use'":
-            MsgBox "Don't Use this DumbDumb"
+            MsgBox "Not in use currently"
 
 }
 Sleep 500
@@ -1314,6 +1465,14 @@ OpenFiledialogTC(*){
 
         FileCopy(SelectedTCFWFile, destinationTCFile, 1)
 
+        if (FileExist(destinationTCFile))
+            {
+            
+                Sleep 1000
+                CheckFWLoopTC()
+
+            }
+
     }
 }
 
@@ -1329,11 +1488,39 @@ InstallFWTC(*){
         Sleep 100 
         Keystroke3()
         Sleep 100 
-        ControlSend "{N}",, "tkToolUtility.exe"
-        Sleep 100
-        ControlSend "{N}",, "tkToolUtility.exe"
-        Sleep 100
-        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        ChooseTC := ChooseTCFWIns.Text
+        Switch ChooseTC{
+            Case "":
+            ControlSend "{N}",, "tkToolUtility.exe"
+            InsSID()
+            Case "Upper PR STR - 0x30" :
+            ControlSend "{y}",, "tkToolUtility.exe"
+            Hex0x3()
+            Sleep 100
+            Keystroke0()
+            InsSID()
+            Case "Lower PR STR - 0x31" :
+            Hex0x3()
+            Sleep 100
+            Keystroke1()
+            InsSID()
+            Case "Upper TC - 0x32" :
+            Hex0x3()
+            Sleep 100
+            Keystroke2()
+            InsSID()
+            Case "Lower TC - 0x33" :
+            Hex0x3()
+            Sleep 100
+            Keystroke3()
+            InsSID()
+            Case "DDR TC SJR - 0x34" :
+            Hex0x3()
+            Sleep 100
+            Keystroke4()
+            InsSID()
+        }
+
         ReopenAfterIns()
 
         case "QPSK/MasterBox":
@@ -1349,11 +1536,38 @@ InstallFWTC(*){
         Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
         Sleep 100 
-        ControlSend "{N}",, "tkToolUtility.exe"
-        Sleep 100 
-        ControlSend "{N}",, "tkToolUtility.exe"
-        Sleep 100
-        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        ChooseTC := ChooseTCFWIns.Text
+        Switch ChooseTC{
+            Case "":
+            ControlSend "{N}",, "tkToolUtility.exe"
+            InsSID()
+            Case "Upper PR STR - 0x30" :
+            ControlSend "{y}",, "tkToolUtility.exe"
+            Hex0x3()
+            Sleep 100
+            Keystroke0()
+            InsSID()
+            Case "Lower PR STR - 0x31" :
+            Hex0x3()
+            Sleep 100
+            Keystroke1()
+            InsSID()
+            Case "Upper TC - 0x32" :
+            Hex0x3()
+            Sleep 100
+            Keystroke2()
+            InsSID()
+            Case "Lower TC - 0x33" :
+            Hex0x3()
+            Sleep 100
+            Keystroke3()
+            InsSID()
+            Case "DDR TC SJR - 0x34" :
+            Hex0x3()
+            Sleep 100
+            Keystroke4()
+            InsSID()
+        }
         ReopenAfterIns()
 
         case "OFDM":
@@ -1732,3 +1946,4 @@ QTCheck(*){
     ControlSend "{1}" ,, "tkToolUtility.exe"
     ControlSend "{Enter}" ,, "tkToolUtility.exe"
 }
+
