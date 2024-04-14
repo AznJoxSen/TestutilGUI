@@ -1,5 +1,5 @@
 Run "tkToolUtility.exe"
-Sleep 400
+Sleep 600
 ControlSend  "{Enter}", , "tkToolUtility.exe"
 SetWorkingDir(A_ScriptDir)
 iconPath := A_ScriptDir . "\\icoFiles\\toolsICO.ico"
@@ -67,6 +67,59 @@ for index, line in Lines {
     }
 }
 
+Directory := "log\"
+SolTest := "solTest"
+
+SolTestContents := ""
+SolTestLatestFile := "" 
+Last := ""
+SolTestLatestTime := 0
+
+SolTestFileRead(*){
+    Sleep 2000
+    Loop Files Directory . SolTest . "*.txt", "F"
+        {
+            SolFilePath := A_LoopFileFullPath
+            SolFileTime := FileGetTime(SolFilePath, "C")
+            if (SolFileTime > SolTestLatestTime)
+                {
+                    global SolTestLatestFile := SolFilePath
+                    global SolTestLatestTime := SolFileTime
+                    global Last := FileGetTime(SolTestLatestFile, "M")
+                }
+        }
+    
+    if (SolTestLatestFile != "")
+        {
+            SolTestContents := FileRead(SolTestLatestFile)
+            SolDisplay.Value := SolTestContents
+            SetTimer CheckFile, 5000
+            
+        }
+        else
+            {
+                MsgBox "No File Found with the specified name part."
+            }
+
+}
+
+
+
+CheckFile(*){
+    
+    CurrentSolFileTime := FileGetTime(SolTestLatestFile, "M")
+
+    ;if (CurrentSolFileTime != Last){
+        global SolTestContents := FileRead(SolTestLatestFile)
+        global Last := CurrentSolFileTime
+        SolDisplay.Value := SolTestContents
+        ;MsgBox "ts"
+        
+   ; }
+    ;else{
+    ;    MsgBox "fuck"
+   ; }
+}
 
 
 ;Create tabs
@@ -75,10 +128,6 @@ Tab.Font := "Bold"
 
 ;For Q-Telemetry Tab
 Tab.UseTab("Q-telemetry")
-
-;MyGui.Add("GroupBox", "W200 H100", "Communication optios")
-
-
 
 ;Choose Modem Type
 MyGui.Add("Text","", "Choose Modem Type")
@@ -98,76 +147,6 @@ RefreshQT.OnEvent("Click", Refreshbut)
 MyGui.Add("Text","x26 y147", "Choose Board Type")
 BoardChoice := MyGui.AddDropDownList("W150", ["Master Controller", "DCDC Converter", "Relay Board"])
 BoardChoice.OnEvent("Change", BoardSelect)
-
-;Select Master Controller
-;MyGui.Add("Text",, "Press THIS button for Master Controller")
-;MyGui.Add("Button",, "Master Controller").OnEvent("Click", MasterController)
-
-
-
-;Select DCDC Converter
-;MyGui.Add("Text","x360 y116", "Press THIS Button for DCDC Converter")
-;MyGui.Add("Button",, "DCDC Converter").OnEvent("Click", DCDC)
-
-
-;Select Relay Board
-;MyGui.Add("Text","x360 y116", "Press THIS Button for Relay Board")
-;MyGui.Add("Button",,"Relay Board").OnEvent("Click", RelayBoard)
-
-;ShowText := MyGui.Add("Edit","","")
-;ShowText.SetFont("cBlack")
-
-;MyGui.Add("Button",,"test").OnEvent("Click", Checktest)
-
-;baseDir := A_ScriptDir . "\\log\\"
-
-;extension := ".txt"
-;constantpart := "solTest_"
-
-;dynamicPart := A_Now 
-
-;Checktest(*){
-;FileName := baseDir . constantpart . dynamicPart . extension 
-
-;if (FileExist(FileName)) {
- ;   MsgBox "test"
-
-   ; FileContents := FileRead(FileName)
-   ; ShowText.Value := FileContents
-;}
-;else{
-;    MsgBox "nothing"
-;}
-
-
-
-
-;}
-;Solout := MyGui.Add("Text", "W200 H100")
-;Solout.SetFont("cBlack")
-;Soltest := "solTest_" . A_Now . ".txt"
-
-;ReadSolTest := FileRead(\\log\\Soltest)
-
-;FileTime := FileGetTime(Soltest, "C")
-
-;oldFileTime := 0
-
-;SetTimer(CheckForNewFile, 5000)
-
-;bufferTime := 3000
-
-;FileTime := FormatTime(, "yyyyMMdd_HHmmss")
-
-;CheckForNewFile(*) {
-;    Soltest := A_ScriptDir . "\log\solTest_" . A_Now . ".txt"
-;    FileTime := FileGetTime(Soltest, "M")
-;    if (FileTime > oldFileTime + bufferTime) {
-;        content := FileRead(Soltest)
-;        MyGui.Control("Solout", "", content)
-;        oldFileTime := FileTime
- ;   }
-;}
 
 
 ;For Master Controller
@@ -208,8 +187,6 @@ DCDCSaveButton := MyGui.Add("Button",, "Save")
 DCDCSaveButton.OnEvent("Click", DCDCSave)
 
 
-
-
 ;For Relay Board
 MyGui.Add("Text", "x750 y39", "For Relay Board")
 MyGui.Add("Text",,"Update AltusID/Board ID")
@@ -224,13 +201,6 @@ MyGui.Add("Button",, "Check").OnEvent("Click", QTCheck)
 ;For Solenoid Tab
 Tab.UseTab("Solenoid")
 
-;Select Solenoid
-;MyGui.Add("Text",,"Press button for selecting Solenoid")
-;SolenoidButton := MyGui.Add("Button", ,"Solenoid", )
-;.OnEvent("Click", enter,)
-
-
-
 ;Selecting communication option for solenoid
 MyGui.Add("Text",,"Select Communication Choice")
 ComChoice := MyGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM",])
@@ -241,8 +211,7 @@ ComChoice.Choose("PCAN")
 ;Manually choose com port number
 MyGui.Add("Text",, "Select COM Port Number")
 COMPort := MyGui.AddDropDownList("W75", Words)
-;COMPort.SetFont("cBlack")
-;MyGui.Add("UpDown") 
+
 
 Refresh := MyGui.Add("Button","x121 y114", "Refresh")
 Refresh.OnEvent("Click", Refreshbut)
@@ -285,8 +254,11 @@ COMPort.Add(Words)
 
 }
 
+SolDisplay := MyGui.Add("Edit", " ReadOnly x26 y600 W900 H200")
+SolDisplay.SetFont("cBlack")
 
-;MyGui.Add("Button",, "OK").OnEvent("Click", COMPortSelect)
+SolIinput := MyGui.Add("Edit", "x26 y850 W200")
+SolIinput.SetFont("cBlack")
 
 MyGui.Add("Text","x26 y147", "FW Selected for Installing")
 SolFW := MyGui.Add("Edit", "ReadOnly")
@@ -348,14 +320,9 @@ MyGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
 MyGui.Add("Button",, "Install").OnEvent("Click", InstallSolenoidEz)
 
 
-
-
-
 ;Access solenoid board
 MyGui.Add("Text",, "Get to Access Solenoid Menu")
 MyGui.Add("Button", "" ,"Go To Menu").OnEvent("Click", AccessSolenoidEz)
-
-
 
 
 
@@ -569,6 +536,7 @@ CheckProgram(*){
             ExitApp
             Sleep 500
             SetTimer CheckProgram, 0
+            SetTimer CheckFile, 0
             ;SetTimer CheckForNewFile, 0
         }
         
@@ -603,20 +571,19 @@ InstallSolenoidEz(*){
     TestOption := ComChoice.Text
     switch TestOption {
         case "PCAN":
-            return
+            ;return
         case "QPSK/MasterBox":
             
-            ;ControlSend  "{C}", , "tkToolUtility.exe"
-            ;ControlSend  "{O}", , "tkToolUtility.exe"
-            ;ControlSend  "{M}", , "tkToolUtility.exe"
             ControlSend  COMPort.Text ,, "tkToolUtility.exe"
             Sleep 200
             ControlSend  "{Enter}", , "tkToolUtility.exe"
             Sleep 200
             ControlSend  "{Enter}", , "tkToolUtility.exe"
         case "OFDM":
-           return
+           ;return
     }
+    Sleep 200
+    SolTestFileRead()
     
 }
 
