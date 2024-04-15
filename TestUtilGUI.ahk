@@ -69,31 +69,35 @@ for index, line in Lines {
 
 Directory := "log\"
 SolTest := "solTest"
-
-SolTestContents := ""
 SolTestLatestFile := "" 
-Last := ""
 SolTestLatestTime := 0
+SolTestContents := ""
+Last := ""
 
 SolTestFileRead(*){
     Sleep 2000
     Loop Files Directory . SolTest . "*.txt", "F"
         {
             SolFilePath := A_LoopFileFullPath
-            SolFileTime := FileGetTime(SolFilePath, "C")
+            SolFileTime := FileGetTime(SolFilePath, "M")
+
             if (SolFileTime > SolTestLatestTime)
                 {
                     global SolTestLatestFile := SolFilePath
                     global SolTestLatestTime := SolFileTime
-                    global Last := FileGetTime(SolTestLatestFile, "M")
+                    ;global Last := FileGetTime(SolTestLatestFile, "M")
                 }
         }
     
     if (SolTestLatestFile != "")
         {
-            SolTestContents := FileRead(SolTestLatestFile)
+            global SolTestContents := FileRead(SolTestLatestFile)
             SolDisplay.Value := SolTestContents
-            SetTimer CheckFile, 5000
+            SetTimer CheckFile, 1000
+
+            if (SolTestLatestFile != ""){
+                global Last := FileGetTime(SolTestLatestFile, "M")
+             }
             
         }
         else
@@ -108,17 +112,20 @@ SolTestFileRead(*){
 CheckFile(*){
     
     CurrentSolFileTime := FileGetTime(SolTestLatestFile, "M")
+    FileRead(SolTestLatestFile)
 
-    ;if (CurrentSolFileTime != Last){
+    if (CurrentSolFileTime != Last){
         global SolTestContents := FileRead(SolTestLatestFile)
         global Last := CurrentSolFileTime
         SolDisplay.Value := SolTestContents
         ;MsgBox "ts"
+        ;Sleep 50
+        SendMessage(0x0115, 7, 0, "Edit5", "V2.1 TestUtilityGUI For Use With TestUtilityV40")
         
-   ; }
+    }
     ;else{
     ;    MsgBox "fuck"
-   ; }
+    ;}
 }
 
 
@@ -256,6 +263,8 @@ COMPort.Add(Words)
 
 SolDisplay := MyGui.Add("Edit", " ReadOnly x26 y600 W900 H200")
 SolDisplay.SetFont("cBlack")
+
+SolDisplay.Value := SolTestContents
 
 SolIinput := MyGui.Add("Edit", "x26 y850 W200")
 SolIinput.SetFont("cBlack")
