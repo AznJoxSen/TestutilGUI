@@ -67,6 +67,9 @@ for index, line in Lines {
     }
 }
 
+/*
+Does not work properly
+
 Directory := "log\"
 SolTest := "solTest"
 SolTestLatestFile := "" 
@@ -107,8 +110,6 @@ SolTestFileRead(*){
 
 }
 
-
-
 CheckFile(*){
     
     CurrentSolFileTime := FileGetTime(SolTestLatestFile, "M")
@@ -128,6 +129,7 @@ CheckFile(*){
     ;}
 }
 
+*/
 
 ;Create tabs
 Tab := MyGui.Add("Tab3",, ["Q-Telemetry", "Solenoid", "TC Node"])
@@ -261,12 +263,16 @@ COMPort.Add(Words)
 
 }
 
+/*
+
 SolDisplay := MyGui.Add("Edit", " ReadOnly x26 y600 W900 H200")
 SolDisplay.SetFont("cBlack")
 
 SolDisplay.Value := SolTestContents
 
-SolIinput := MyGui.Add("Edit", "x26 y850 W200")
+*/
+MyGui.Add("Text", " x26 y600", "Manual input for TestUtil")
+SolIinput := MyGui.Add("Edit", "")
 SolIinput.SetFont("cBlack")
 
 MyGui.Add("Text","x26 y147", "FW Selected for Installing")
@@ -396,7 +402,8 @@ SensorBb := MyGui.Add("Edit")
 SensorBm := MyGui.Add("Edit")
 SensorAb := MyGui.Add("Edit")
 SensorAm := MyGui.Add("Edit")
-MyGui.Add("Button",, "Update").OnEvent("Click", UpdateSensorValues)
+SensorValuesBTN := MyGui.Add("Button",, "Update")
+SensorValuesBTN.OnEvent("Click", UpdateSensorValues)
 
 ;Set font for sensor value edit box
 Sensorm.SetFont("cBlack")
@@ -408,10 +415,41 @@ SensorBm.SetFont("cBlack")
 SensorAb.SetFont("cBlack")
 SensorAm.SetFont("cBlack")
 
+Sensorm.OnEvent("Focus", SolSensorUpdateBTNFocus)
+Sensorm.OnEvent("LoseFocus", SolSensorUpdateBTNUnFocus)
+
+Sensorb.OnEvent("Focus", SolSensorUpdateBTNFocus)
+Sensorb.OnEvent("LoseFocus", SolSensorUpdateBTNUnFocus)
+
+SensorCb.OnEvent("Focus", SolSensorUpdateBTNFocus)
+SensorCb.OnEvent("LoseFocus", SolSensorUpdateBTNUnFocus)
+
+SensorCm.OnEvent("Focus", SolSensorUpdateBTNFocus)
+SensorCm.OnEvent("LoseFocus", SolSensorUpdateBTNUnFocus)
+
+SensorBb.OnEvent("Focus", SolSensorUpdateBTNFocus)
+SensorBb.OnEvent("LoseFocus", SolSensorUpdateBTNUnFocus)
+
+SensorBm.OnEvent("Focus", SolSensorUpdateBTNFocus)
+SensorBm.OnEvent("LoseFocus", SolSensorUpdateBTNUnFocus)
+
+SensorAb.OnEvent("Focus", SolSensorUpdateBTNFocus)
+SensorAb.OnEvent("LoseFocus", SolSensorUpdateBTNUnFocus)
+
+SensorAm.OnEvent("Focus", SolSensorUpdateBTNFocus)
+SensorAm.OnEvent("LoseFocus", SolSensorUpdateBTNUnFocus)
+
 ;Input edit box for IDs
 AltusID := MyGui.Add("Edit")
 ToolID := MyGui.Add("Edit")
-MyGui.Add("Button",, "Update IDs").OnEvent("Click", UpdateIDs)
+SolUpdateIDBtn := MyGui.Add("Button",, "Update IDs")
+SolUpdateIDBtn.OnEvent("Click", UpdateIDs)
+AltusID.OnEvent("Focus", SolIdBTNFocus)
+AltusID.OnEvent("LoseFocus", SolIdBTNUnFocus) 
+
+ToolID.OnEvent("Focus", SolIdBTNFocus)
+ToolID.OnEvent("LoseFocus", SolIdBTNUnFocus)
+
 
 ;Set font for ID value edit box
 AltusID.SetFont("cBlack")
@@ -535,7 +573,21 @@ CloseGui(*){
     ProcessClose "tkToolUtility.exe"
 }
 
+SolSensorUpdateBTNFocus(*){
+    SensorValuesBTN.Opt("+Default")
+}
 
+SolSensorUpdateBTNUnFocus(*){
+    SensorValuesBTN.Opt("-Default")
+}
+
+SolIdBTNFocus(*){
+    SolUpdateIDBtn.Opt("+Default")
+}
+
+SolIdBTNUnFocus(*){
+    SolUpdateIDBtn.Opt("-Default")
+}
 
 CheckProgram(*){
     if !WinExist("ahk_exe tkToolUtility.exe")
@@ -545,7 +597,7 @@ CheckProgram(*){
             ExitApp
             Sleep 500
             SetTimer CheckProgram, 0
-            SetTimer CheckFile, 0
+            ;SetTimer CheckFile, 0
             ;SetTimer CheckForNewFile, 0
         }
         
@@ -592,7 +644,7 @@ InstallSolenoidEz(*){
            ;return
     }
     Sleep 200
-    SolTestFileRead()
+    ;SolTestFileRead()
     
 }
 
