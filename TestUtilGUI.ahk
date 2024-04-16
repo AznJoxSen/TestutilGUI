@@ -135,11 +135,15 @@ CheckFile(*){
 Tab := MyGui.Add("Tab3",, ["Q-Telemetry", "Solenoid", "TC Node"])
 Tab.Font := "Bold"
 
+;, "1-Wire", "RSS", "Anchor", "Orientation"
+
 ;For Q-Telemetry Tab
 Tab.UseTab("Q-telemetry")
 
+MyGui.Add("Button","x800 y630","Restart TestUtility").OnEvent("Click", RestartTestUtil)
+
 ;Choose Modem Type
-MyGui.Add("Text","", "Choose Modem Type")
+MyGui.Add("Text","x26 y39", "Choose Modem Type")
 QTComChoice := MyGui.AddDropDownList("W80", ["QPSK", "OFDM"])
 QTComChoice.Choose("QPSK")
 
@@ -168,7 +172,14 @@ MyGui.Add("Text",,"Update Q-Telemetry Module ID")
 QTID := MyGui.Add("Edit")
 QTID.SetFont("cBlack")
 
-MyGui.Add("Button","Default", "Update").OnEvent("Click", EnterToSaveQT)
+MCID.OnEvent("Focus", McQtBtnFocus)
+MCID.OnEvent("LoseFocus", McQtBtnUnFocus)
+
+QTID.OnEvent("Focus", McQtBtnFocus)
+QTID.OnEvent("LoseFocus", McQtBtnUnFocus)
+
+MCBtn := MyGui.Add("Button","", "Update")
+MCBtn.OnEvent("Click", EnterToSaveQT)
 
 MyGui.Add("Text",, "Check Current Settings")
 MyGui.Add("Button",, "Check").OnEvent("Click", QTCheck)
@@ -185,8 +196,11 @@ MyGui.Add("Button",, "Default Startup").OnEvent("Click", DefaultStartup)
 MyGui.Add("Text",, "Update AltusID/Board ID")
 DCDCID := MyGui.Add("Edit")
 DCDCID.SetFont("cBlack")
-MyGui.Add("Button",, "Update").OnEvent("Click", UpdateDCDCID)
+DCDCBtn := MyGui.Add("Button",, "Update")
+DCDCBtn.OnEvent("Click", EnterToSaveQT)
 
+DCDCID.OnEvent("Focus", DCDCBtnFocus)
+DCDCID.OnEvent("LoseFocus", DCDCBtnUnFocus)
 
 MyGui.Add("Text",, "Check Current Settings")
 MyGui.Add("Button",, "Check").OnEvent("Click", QTCheck)
@@ -201,7 +215,11 @@ MyGui.Add("Text", "x750 y39", "For Relay Board")
 MyGui.Add("Text",,"Update AltusID/Board ID")
 RBID := MyGui.Add("Edit")
 RBID.SetFont("cBlack")
-MyGui.Add("Button",, "Update").OnEvent("Click", UpdateRBID)
+RBBtn := MyGui.Add("Button",, "Update")
+RBBtn.OnEvent("Click", EnterToSaveQT)
+
+RBID.OnEvent("Focus", RBBtnFocus)
+RBID.OnEvent("LoseFocus", RBBtnUnFocus)
 
 MyGui.Add("Text",, "Check Current Settings")
 MyGui.Add("Button",, "Check").OnEvent("Click", QTCheck)
@@ -210,8 +228,10 @@ MyGui.Add("Button",, "Check").OnEvent("Click", QTCheck)
 ;For Solenoid Tab
 Tab.UseTab("Solenoid")
 
+MyGui.Add("Button","x800 y630","Restart TestUtility").OnEvent("Click", RestartTestUtil)
+
 ;Selecting communication option for solenoid
-MyGui.Add("Text",,"Select Communication Choice")
+MyGui.Add("Text","x26 y39","Select Communication Choice")
 ComChoice := MyGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM",])
 ;ComChoice.OnEvent("Change", SendKeystrokeFromListbox)
 ComChoice.Choose("PCAN")
@@ -272,8 +292,8 @@ SolDisplay.Value := SolTestContents
 
 */
 MyGui.Add("Text", " x26 y600", "Manual input for TestUtil")
-SolIinput := MyGui.Add("Edit", "")
-SolIinput.SetFont("cBlack")
+SolInput := MyGui.Add("Edit", "")
+SolInput.SetFont("cBlack")
 
 MyGui.Add("Text","x26 y147", "FW Selected for Installing")
 SolFW := MyGui.Add("Edit", "ReadOnly")
@@ -345,8 +365,10 @@ MyGui.Add("Button", "" ,"Go To Menu").OnEvent("Click", AccessSolenoidEz)
 MyGui.Add("Text","", "Rescan Nodes If Necessecary")
 MyGui.Add("Button",, "Rescan").OnEvent("Click", PingNodes)
 
+MyGui.Add("Button","x100 y483", "Re-Initialize PCAN").OnEvent("Click", PCANReinitialize)
+
 ;Choose what solenoid to access
-MyGui.Add("Text",, "Choose Solenoid Board")
+MyGui.Add("Text","x26 y518", "Choose Solenoid Board")
 SolenoidAccess := MyGui.AddDropDownList("W170", ["FlexDrive - 0x12", "MotorPump - 0x13", "CompactTracMP - 0x13", "SJR - 0x14", "PrimeStroker - 0x15", "ShortStroker - 0x15", "ShortStrokerV2 - 0x15", "Puncher - 0x16"])
 SolenoidAccess.OnEvent("Change", SolenoidIDs)
 ;CBS_DISABLENOSCROLL
@@ -458,8 +480,10 @@ ToolID.SetFont("cBlack")
 ; For TC Node tab
 Tab.UseTab("TC Node")
 
+MyGui.Add("Button","x800 y630","Restart TestUtility").OnEvent("Click", RestartTestUtil)
+
 ;Selecting communication option for TC Node
-MyGui.Add("Text",,"Select Communication Choice")
+MyGui.Add("Text","x26 y39","Select Communication Choice")
 TCComChoice := MyGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM"])
 TCComChoice.Choose("PCAN")
 
@@ -535,7 +559,9 @@ MyGui.Add("Button", "" ,"Go To Menu").OnEvent("Click", TCMenu)
 MyGui.Add("Text","", "Rescan Nodes If Necessecary")
 MyGui.Add("Button",, "Rescan").OnEvent("Click", PingNodes)
 
-MyGui.Add("Text",, "Choose TC Node")
+MyGui.Add("Button","x100 y483", "Re-Initialize PCAN").OnEvent("Click", TCPCANReinitialize)
+
+MyGui.Add("Text","x26 y518", "Choose TC Node")
 TCAccess := MyGui.AddDropDownList("W160", ["Upper PR STR - 0x30", "Lower PR STR - 0x31", "Upper TC - 0x32", "Lower TC - 0x33", "DDR TC SJR - 0x34"])
 TCAccess.OnEvent("Change", UseTCID)
 
@@ -553,7 +579,20 @@ MyGui.Add("Text",, "Update Tool ID")
 ;Input edit box for IDs
 TCAltusID := MyGui.Add("Edit","x750 y39")
 TCToolID := MyGui.Add("Edit")
-MyGui.Add("Button",, "Update IDs").OnEvent("Click", UpdateTCIDs)
+
+TCAltusID.SetFont("cBlack")
+TCToolID.SetFont("cBlack")
+
+TCTCIdBtn := MyGui.Add("Button",, "Update IDs")
+TCTCIdBtn.OnEvent("Click", UpdateTCIDs)
+
+TCAltusID.OnEvent("Focus", TCBtnFocus)
+TCAltusID.OnEvent("LoseFocus", TCBtnUnFocus)
+
+TCToolID.OnEvent("Focus", TCBtnFocus)
+TCToolID.OnEvent("LoseFocus", TCBtnUnFocus)
+
+
 
 ;Disable Wheel scrolling
 
@@ -603,6 +642,52 @@ CheckProgram(*){
         
 }
 
+RestartTestUtil(*){
+    SetTimer CheckProgram, 0
+    WinClose("ahk_exe tkToolUtility.exe")
+    Sleep 200
+    Run "tkToolUtility.exe"
+    Sleep 700
+    MCID.Value := ""
+    QTID.Value := ""
+    DCDCID.Value := ""
+    RBID.Value := ""
+    SolInput.Value := ""
+    Sensorm.Value := ""
+    Sensorb.Value := ""
+    SensorCb.Value := ""
+    SensorCm.Value := ""
+    SensorBb.Value := ""
+    SensorBm.Value := ""
+    SensorAb.Value := ""
+    SensorAm.Value := ""
+    AltusID.Value := ""
+    ToolID.Value := ""
+    TCAltusID.Value := ""
+    TCToolID.Value := ""
+
+    QTComChoice.Choose 0
+    QTCOMPort.Choose 0
+    BoardChoice.Choose 0
+    ComChoice.Choose 0
+    COMPort.Choose 0
+    ChooseSolFWIns.Choose 0
+    SolenoidAccess.Choose 0
+    SolenoidUse.Choose 0
+    SensorType.Choose 0
+    SolenoidSensors.Choose 0
+    TCComChoice.Choose 0
+    TCCOMPort.Choose 0
+    ChooseTCFWIns.Choose 0
+    TCAccess.Choose 0
+    TCUsage.Choose 0
+    WinMove(0,0,,, "ahk_exe tkToolUtility.exe")
+    Sleep 200
+    WinActivate ("V2.1 TestUtilityGUI For Use With TestUtilityV40")
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+    SetTimer CheckProgram, 500
+}
+
 InstallSolenoidEz(*){
     Enter()
     SendKeystrokeFromListbox()
@@ -621,7 +706,8 @@ InstallSolenoidEz(*){
     SetTimer CheckProgram, 500
     Sleep 500
     WinMove(0,0,,, "ahk_exe tkToolUtility.exe")
-    Sleep 500 
+    Sleep 500
+    WinActivate ("V2.1 TestUtilityGUI For Use With TestUtilityV40") 
     ControlSend  "{Enter}", , "tkToolUtility.exe"
 }
 
@@ -686,6 +772,29 @@ BoardSelect(*){
             RelayBoard()
             QTCOMPortSelect()
     }
+}
+
+McQtBtnFocus(*){
+    MCBtn.Opt("+Default")
+}
+McQtBtnUnFocus(*){
+    MCBtn.Opt("-Default")
+}
+
+DCDCBtnFocus(*){
+    DCDCBtn.Opt("+Default")
+}
+
+DCDCBtnUnFocus(*){
+    DCDCBtn.Opt("-Default")
+}
+
+RBBtnFocus(*){
+    RBBtn.Opt("+Default")
+}
+
+RBBtnUnFocus(*){
+    RBBtn.Opt("-Default")
 }
 
 EnterToSaveQT(*){
@@ -942,6 +1051,16 @@ TCCOMPortSelect(*){
 
 PingNodes(*){
     Keystroke3()
+    Sleep 500
+}
+
+PCANReinitialize(*){
+    Keystroke9()
+    Sleep 500
+}
+
+TCPCANReinitialize(*){
+    Keystroke7()
     Sleep 500
 }
 
@@ -1719,6 +1838,14 @@ ChangeTCID(*){
         ControlSend "{y}",, "tkToolUtility.exe"
         Hex0xCB()
     }
+}
+
+TCBtnFocus(*){
+    TCTCIdBtn.Opt("+Default")
+}
+
+TCBtnUnFocus(*){
+    TCTCIdBtn.Opt("-Default")
 }
 
 UpdateTCIDs(*){
