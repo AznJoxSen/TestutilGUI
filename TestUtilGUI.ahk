@@ -228,21 +228,23 @@ MyGui.Add("Button",, "Check").OnEvent("Click", QTCheck)
 ;For Solenoid Tab
 Tab.UseTab("Solenoid")
 
-MyGui.Add("Button","x800 y630","Restart TestUtility").OnEvent("Click", RestartTestUtil)
+MyGui.Add("Button","x1000 y630","Restart TestUtility").OnEvent("Click", RestartTestUtil)
+
+MyGui.Add("GroupBox","x18 y35 W255 H150")
 
 ;Selecting communication option for solenoid
 MyGui.Add("Text","x26 y39","Select Communication Choice")
 ComChoice := MyGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM",])
 ;ComChoice.OnEvent("Change", SendKeystrokeFromListbox)
 ComChoice.Choose("PCAN")
-
+MyGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
 
 ;Manually choose com port number
 MyGui.Add("Text",, "Select COM Port Number")
 COMPort := MyGui.AddDropDownList("W75", Words)
 
 
-Refresh := MyGui.Add("Button","x121 y114", "Refresh")
+Refresh := MyGui.Add("Button","x121 y145", "Refresh")
 Refresh.OnEvent("Click", Refreshbut)
 
 Refreshbut(*)
@@ -295,7 +297,9 @@ MyGui.Add("Text", " x26 y600", "Manual input for TestUtil")
 SolInput := MyGui.Add("Edit", "")
 SolInput.SetFont("cBlack")
 
-MyGui.Add("Text","x26 y147", "FW Selected for Installing")
+MyGui.Add("GroupBox", "x280 y35 H235 W300")
+
+MyGui.Add("Text","x290 y39", "FW Selected for Installing")
 SolFW := MyGui.Add("Edit", "ReadOnly")
 SolFW.SetFont("cBlack")
 
@@ -351,30 +355,29 @@ ChooseSolFWIns := MyGui.AddDropDownList("W170", ["FlexDrive - 0x12", "MotorPump 
 
 ;Install FW to Solenoid
 MyGui.Add("Text",, "Install Firmware to Solenoid")
-MyGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
+
 MyGui.Add("Button",, "Install").OnEvent("Click", InstallSolenoidEz)
 
+MyGui.Add("GroupBox","x280 y300 H180 W230")
 
 ;Access solenoid board
-MyGui.Add("Text",, "Get to Access Solenoid Menu")
+MyGui.Add("Text","x290 y300", "Go to Access Solenoid Menu")
 MyGui.Add("Button", "" ,"Go To Menu").OnEvent("Click", AccessSolenoidEz)
-
-
 
 ;Rescan of Solenoid CANIDs
 MyGui.Add("Text","", "Rescan Nodes If Necessecary")
 MyGui.Add("Button",, "Rescan").OnEvent("Click", PingNodes)
 
-MyGui.Add("Button","x100 y483", "Re-Initialize PCAN").OnEvent("Click", PCANReinitialize)
+MyGui.Add("Button","x370 y381", "Re-Initialize PCAN").OnEvent("Click", PCANReinitialize)
 
 ;Choose what solenoid to access
-MyGui.Add("Text","x26 y518", "Choose Solenoid Board")
+MyGui.Add("Text","x290 y420", "Choose Solenoid Board")
 SolenoidAccess := MyGui.AddDropDownList("W170", ["FlexDrive - 0x12", "MotorPump - 0x13", "CompactTracMP - 0x13", "SJR - 0x14", "PrimeStroker - 0x15", "ShortStroker - 0x15", "ShortStrokerV2 - 0x15", "Puncher - 0x16"])
 SolenoidAccess.OnEvent("Change", SolenoidIDs)
 ;CBS_DISABLENOSCROLL
 
 ;Changing Solenoid Usage
-MyGui.Add("Text","x360 y39", "Change Solenoid Usage")
+MyGui.Add("Text","x600 y39", "Change Solenoid Usage")
 SolenoidUse := MyGui.AddDropDownList("W170", ["FlexDrive - 0x12", "MotorPump - 0x13", "CompactTracMP - 0x13", "SJR - 0x14", "PrimeStroker - 0x15", "ShortStroker - 0x15", "ShortStrokerV2 - 0x15", "Puncher - 0x16"])
 SolenoidUse.OnEvent("Change", SolenoidUsage)
 
@@ -395,12 +398,12 @@ MyGui.Add("Text","" , "Check Calibration Table")
 MyGui.Add("Button",,"Check").OnEvent("Click", CheckCal)
 
 ;Test Solenoid
-MyGui.Add("Text","x360 y360" , "For EL.LAB Use Only!")
+MyGui.Add("Text","x600 y360" , "For EL.LAB Use Only!")
 MyGui.Add("Text","" ,"Test Solenoid Switching")
 MyGui.Add("Button",, "Test Switching").OnEvent("Click", SolenoidSwitching)
 
 ;Text for sensor values
-MyGui.Add("Text","x600 y60", "SensorLinear m")
+MyGui.Add("Text","x800 y60", "SensorLinear m")
 MyGui.Add("Text",, "SensorLinear b")
 MyGui.Add("Text",, "SensorQuadtratic Cb")
 MyGui.Add("Text",, "SensorQuadtratic Cm")
@@ -415,7 +418,7 @@ MyGui.Add("Text",, "Update Altus/Board ID")
 MyGui.Add("Text",, "Update Tool ID")
 
 ;Input edit box for sensor values
-MyGui.Add("Text","x750 y39","Add Sensor values")
+MyGui.Add("Text","x950 y39","Add Sensor values")
 Sensorm := MyGui.Add("Edit",)
 Sensorb := MyGui.Add("Edit")
 SensorCb := MyGui.Add("Edit")
@@ -480,13 +483,16 @@ ToolID.SetFont("cBlack")
 ; For TC Node tab
 Tab.UseTab("TC Node")
 
-MyGui.Add("Button","x800 y630","Restart TestUtility").OnEvent("Click", RestartTestUtil)
+MyGui.Add("Button","x1000 y630","Restart TestUtility").OnEvent("Click", RestartTestUtil)
+
+MyGui.Add("GroupBox","x18 y35 W255 H150")
 
 ;Selecting communication option for TC Node
 MyGui.Add("Text","x26 y39","Select Communication Choice")
 TCComChoice := MyGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM"])
 TCComChoice.Choose("PCAN")
 
+MyGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
 
 ;Manually choose com port number
 MyGui.Add("Text",, "Select COM Port Number")
@@ -494,10 +500,12 @@ TCCOMPort := MyGui.AddDropDownList("W75", Words)
 ;TCCOMPort.SetFont("cBlack")
 ;MyGui.Add("UpDown") 
 
-RefreshTC := MyGui.Add("Button","x121 y114", "Refresh")
+RefreshTC := MyGui.Add("Button","x121 y145", "Refresh")
 RefreshTC.OnEvent("Click", Refreshbut)
 
-MyGui.Add("Text","x26 y147", "FW Selected for Installing")
+MyGui.Add("GroupBox", "x280 y35 H235 W300")
+
+MyGui.Add("Text","x290 y39", "FW Selected for Installing")
 TCFW := MyGui.Add("Edit", "ReadOnly")
 TCFW.SetFont("cBlack")
 
@@ -548,24 +556,26 @@ ChooseTCFWIns := MyGui.AddDropDownList("W160", ["Upper PR STR - 0x30", "Lower PR
 
 ;Install FW to TC Node
 MyGui.Add("Text",, "Install Firmware to TC Node")
-MyGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
+
 MyGui.Add("Button",, "Install").OnEvent("Click", InstallFWTC)
 
+MyGui.Add("GroupBox","x280 y300 H180 W230")
+
 ;Access TC NOde
-MyGui.Add("Text",, "Get to Access TC Node Menu")
+MyGui.Add("Text","x290 y300", "Go to Access TC Node Menu")
 MyGui.Add("Button", "" ,"Go To Menu").OnEvent("Click", TCMenu)
 
 ;Rescan of TC Nodes CAN IDs
 MyGui.Add("Text","", "Rescan Nodes If Necessecary")
 MyGui.Add("Button",, "Rescan").OnEvent("Click", PingNodes)
 
-MyGui.Add("Button","x100 y483", "Re-Initialize PCAN").OnEvent("Click", TCPCANReinitialize)
+MyGui.Add("Button","x370 y381", "Re-Initialize PCAN").OnEvent("Click", TCPCANReinitialize)
 
-MyGui.Add("Text","x26 y518", "Choose TC Node")
+MyGui.Add("Text","x290 y420", "Choose TC Node")
 TCAccess := MyGui.AddDropDownList("W160", ["Upper PR STR - 0x30", "Lower PR STR - 0x31", "Upper TC - 0x32", "Lower TC - 0x33", "DDR TC SJR - 0x34"])
 TCAccess.OnEvent("Change", UseTCID)
 
-MyGui.Add("Text","x360 y39", "Change TC Node Usage")
+MyGui.Add("Text","x600 y39", "Change TC Node Usage")
 TCUsage := MyGui.AddDropDownList("W160", ["Upper PR STR - 0x30", "Lower PR STR - 0x31", "Upper TC - 0x32", "Lower TC - 0x33", "DDR TC SJR - 0x34"])
 TCUsage.OnEvent("Change", ChangeTCID)
 
@@ -573,11 +583,11 @@ MyGui.Add("Text","" , "Check Current Settings")
 MyGui.Add("Button",,"Check").OnEvent("Click", CheckCal)
 
 ;Text for IDs
-MyGui.Add("Text","x600 y39", "Update Altus/Board ID")
+MyGui.Add("Text","x800 y39", "Update Altus/Board ID")
 MyGui.Add("Text",, "Update Tool ID")
 
 ;Input edit box for IDs
-TCAltusID := MyGui.Add("Edit","x750 y39")
+TCAltusID := MyGui.Add("Edit","x950 y39")
 TCToolID := MyGui.Add("Edit")
 
 TCAltusID.SetFont("cBlack")
