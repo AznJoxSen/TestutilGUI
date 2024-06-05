@@ -132,15 +132,17 @@ CheckFile(*){
 */
 
 ;Create tabs
-Tab := MyGui.Add("Tab3",, ["Q-Telemetry", "Solenoid", "TC Node"])
+Tab := MyGui.Add("Tab3",, ["Q-Telemetry", "Solenoid", "TC Node" , "1-Wire"])
 Tab.Font := "Bold"
 
-;, "1-Wire", "RSS", "Anchor", "Orientation"
+;, "RSS", "Anchor", "Orientation"
 
 ;For Q-Telemetry Tab
 Tab.UseTab("Q-telemetry")
 
-MyGui.Add("Button","x800 y630","Restart TestUtility").OnEvent("Click", RestartTestUtil)
+MyGui.Add("Button","x1000 y630","Restart TestUtility").OnEvent("Click", RestartTestUtil)
+
+MyGui.Add("GroupBox","x18 y35 W200 H180")
 
 ;Choose Modem Type
 MyGui.Add("Text","x26 y39", "Choose Modem Type")
@@ -154,13 +156,14 @@ QTCOMPort := MyGui.AddDropDownList("W75", Words)
 ;MyGui.Add("Button",, "OK").OnEvent("Click", QTCOMPortSelect)
 
 RefreshQT := MyGui.Add("Button","x121 y114", "Refresh")
-RefreshQT.OnEvent("Click", Refreshbut)
+RefreshQT.OnEvent("Click", RefreshBtn)
 
 ;Choose Board
 MyGui.Add("Text","x26 y147", "Choose Board Type")
 BoardChoice := MyGui.AddDropDownList("W150", ["Master Controller", "DCDC Converter", "Relay Board"])
 BoardChoice.OnEvent("Change", BoardSelect)
 
+MyGui.Add("GroupBox","x238 y35 W210 H250")
 
 ;For Master Controller
 MyGui.Add("Text","x250 y39", "For Master Controller")
@@ -184,6 +187,7 @@ MCBtn.OnEvent("Click", EnterToSaveQT)
 MyGui.Add("Text",, "Check Current Settings")
 MyGui.Add("Button",, "Check").OnEvent("Click", QTCheck)
 
+MyGui.Add("GroupBox","x486 y35 W190 H370")
 
 ;For DCDC
 MyGui.Add("Text","x500 y39", "For DCDC Converter")
@@ -209,6 +213,7 @@ MyGui.Add("Text",, "Save Changes")
 DCDCSaveButton := MyGui.Add("Button",, "Save")
 DCDCSaveButton.OnEvent("Click", DCDCSave)
 
+MyGui.Add("GroupBox","x736 y35 W190 H195")
 
 ;For Relay Board
 MyGui.Add("Text", "x750 y39", "For Relay Board")
@@ -245,9 +250,9 @@ COMPort := MyGui.AddDropDownList("W75", Words)
 
 
 Refresh := MyGui.Add("Button","x121 y145", "Refresh")
-Refresh.OnEvent("Click", Refreshbut)
+Refresh.OnEvent("Click", RefreshBtn)
 
-Refreshbut(*)
+RefreshBtn(*)
 {
 
 FileAppend("test","ComPorts.txt",)
@@ -296,6 +301,13 @@ SolDisplay.Value := SolTestContents
 MyGui.Add("Text", " x26 y600", "Manual input for TestUtil")
 SolInput := MyGui.Add("Edit", "")
 SolInput.SetFont("cBlack")
+
+SolInput.OnEvent("Focus", SolManBTNFocus)
+SolInput.OnEvent("LoseFocus", SolManBTNUnFocus)
+
+SolManInput := MyGui.Add("Button","x180 y620","Submit")
+SolManInput.OnEvent("Click", SolInputValueEnter)
+
 
 MyGui.Add("GroupBox", "x280 y35 H235 W300")
 
@@ -376,6 +388,8 @@ SolenoidAccess := MyGui.AddDropDownList("W170", ["FlexDrive - 0x12", "MotorPump 
 SolenoidAccess.OnEvent("Change", SolenoidIDs)
 ;CBS_DISABLENOSCROLL
 
+MyGui.Add("GroupBox","x590 y35 W190 H290")
+
 ;Changing Solenoid Usage
 MyGui.Add("Text","x600 y39", "Change Solenoid Usage")
 SolenoidUse := MyGui.AddDropDownList("W170", ["FlexDrive - 0x12", "MotorPump - 0x13", "CompactTracMP - 0x13", "SJR - 0x14", "PrimeStroker - 0x15", "ShortStroker - 0x15", "ShortStrokerV2 - 0x15", "Puncher - 0x16"])
@@ -397,10 +411,14 @@ MyGui.Add("Button",,"Check").OnEvent("Click", CheckSet)
 MyGui.Add("Text","" , "Check Calibration Table")
 MyGui.Add("Button",,"Check").OnEvent("Click", CheckCal)
 
+MyGui.Add("GroupBox","x590 y355 W170 H102")
+
 ;Test Solenoid
 MyGui.Add("Text","x600 y360" , "For EL.LAB Use Only!")
 MyGui.Add("Text","" ,"Test Solenoid Switching")
 MyGui.Add("Button",, "Test Switching").OnEvent("Click", SolenoidSwitching)
+
+MyGui.Add("GroupBox","x790 y35 W325 H415")
 
 ;Text for sensor values
 MyGui.Add("Text","x800 y60", "SensorLinear m")
@@ -501,7 +519,7 @@ TCCOMPort := MyGui.AddDropDownList("W75", Words)
 ;MyGui.Add("UpDown") 
 
 RefreshTC := MyGui.Add("Button","x121 y145", "Refresh")
-RefreshTC.OnEvent("Click", Refreshbut)
+RefreshTC.OnEvent("Click", RefreshBtn)
 
 MyGui.Add("GroupBox", "x280 y35 H235 W300")
 
@@ -603,6 +621,82 @@ TCToolID.OnEvent("Focus", TCBtnFocus)
 TCToolID.OnEvent("LoseFocus", TCBtnUnFocus)
 
 
+;For 1 Wire Master/Slave
+Tab.UseTab("1-Wire")
+MyGui.Add("Button","x1000 y630","Restart TestUtility").OnEvent("Click", RestartTestUtil)
+
+MyGui.Add("GroupBox","x18 y35 W255 H150")
+
+;Selecting communication option for TC Node
+MyGui.Add("Text","x26 y39","Select Communication Choice")
+OneWireComChoice := MyGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM"])
+OneWireComChoice.Choose("PCAN")
+
+MyGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
+
+;Manually choose com port number
+MyGui.Add("Text",, "Select COM Port Number")
+OneWireCOMPort := MyGui.AddDropDownList("W75", Words)
+;TCCOMPort.SetFont("cBlack")
+;MyGui.Add("UpDown") 
+
+RefreshOneWire := MyGui.Add("Button","x121 y145", "Refresh")
+RefreshOneWire.OnEvent("Click", RefreshBtn)
+
+MyGui.Add("GroupBox", "x280 y35 H235 W300")
+
+MyGui.Add("Text","x290 y39", "FW Selected for Installing")
+OneWireMasterFW := MyGui.Add("Edit", "ReadOnly")
+OneWireMasterFW.SetFont("cBlack")
+
+fileOneWireMasterContents := FileRead("hexFiles_SWC\SWC_leinApp_bl.hex")
+OneWireMasterFolder := ("1-W-Master FW\Main FW\*.hex")
+
+Loop Files OneWireMasterFolder, "F"
+    {
+        FilePathOneWireM := A_LoopFileFullPath
+        CurrentFileOneWireM := FileRead(FilePathOneWireM)
+
+if (fileOneWireMasterContents == CurrentFileOneWireM) 
+    {      
+    FWOneWireMasterFile := A_LoopFileName
+        OneWireMasterFW.Text := FWOneWireMasterFile
+
+    break
+    }
+    }
+
+CheckFWLoopOneWireMaster(*){
+Loop Files OneWireMasterFolder, "F"
+    {
+        fileOneWireMasterContents := FileRead("hexFiles_SWC\SWC_leinApp_bl.hex")
+        FilePathOneWireM := A_LoopFileFullPath
+
+        CurrentFileOneWireM := FileRead(FilePathOneWireM)
+if (fileOneWireMasterContents == CurrentFileOneWireM) 
+    {
+    FWOneWireMasterFile := A_LoopFileName
+        OneWireMasterFW.Text := FWOneWireMasterFile
+        FWOneWireMasterFile := ""
+        CurrentFileOneWireM := ""
+    break
+    }
+    }
+}
+
+;Browse for FW for One Wire Master
+MyGui.Add("Text","", "Select Firmware Version")
+MyGui.Add("Button",, "Browse").OnEvent("Click", OpenFiledialogOneWireMaster)
+
+;Install FW to One Wire Master
+MyGui.Add("Text",, "Install Firmware to One Wire Master")
+
+MyGui.Add("Button",, "Install").OnEvent("Click", InstallFWOneWireMaster)
+
+;MyGui.Add("GroupBox","x280 y300 H180 W230")
+
+
+
 
 ;Disable Wheel scrolling
 
@@ -637,6 +731,15 @@ SolIdBTNFocus(*){
 SolIdBTNUnFocus(*){
     SolUpdateIDBtn.Opt("-Default")
 }
+
+SolManBTNFocus(*){
+    SolManInput.Opt("+Default")
+}
+
+SolManBTNUnFocus(*){
+    SolManInput.Opt("-Default")
+}
+
 
 CheckProgram(*){
     if !WinExist("ahk_exe tkToolUtility.exe")
@@ -676,17 +779,17 @@ RestartTestUtil(*){
     TCAltusID.Value := ""
     TCToolID.Value := ""
 
-    QTComChoice.Choose 0
+    ;QTComChoice.Choose 0
     QTCOMPort.Choose 0
     BoardChoice.Choose 0
-    ComChoice.Choose 0
+    ;ComChoice.Choose 0
     COMPort.Choose 0
     ChooseSolFWIns.Choose 0
     SolenoidAccess.Choose 0
     SolenoidUse.Choose 0
     SensorType.Choose 0
     SolenoidSensors.Choose 0
-    TCComChoice.Choose 0
+    ;TCComChoice.Choose 0
     TCCOMPort.Choose 0
     ChooseTCFWIns.Choose 0
     TCAccess.Choose 0
@@ -1399,6 +1502,14 @@ SensorTypeChange(*){
 }
 }
 
+SolInputValueEnter(*){
+    ControlSend SolInput.Value ,, "tkToolUtility.exe"
+    Sleep 100
+    ControlSend "{Enter}" ,, "tkToolUtility.exe"
+    Sleep 100
+    SolInput.Value := ""
+}
+
 SensorIDs(*){
     Hex0xFA()
     Sleep 200
@@ -1908,6 +2019,69 @@ UpdateTCIDs(*){
         return
     }
 }
+
+OpenFiledialogOneWireMaster(*){
+SelectedOneWireMasterFWFile := FileSelect(1,,"Select Firmware","Firmware (*.hex)")
+if (SelectedOneWireMasterFWFile != "")
+{
+    destinationOneWireMasterDir := A_ScriptDir . "\\hexFiles_SWC\\"
+    newName := "SWC_leinApp_bl.hex"
+
+    destinationOneWireMasterFile := destinationOneWireMasterDir . newName
+
+    FileCopy(SelectedOneWireMasterFWFile, destinationOneWireMasterFile, 1)
+
+    if (FileExist(destinationOneWireMasterFile))
+        {
+        
+            Sleep 1000
+            CheckFWLoopOneWireMaster()
+
+        }
+
+}
+}
+
+InstallFWOneWireMaster(*){
+    SelectedOneWireMasterCom := OneWireComChoice.Text
+    switch SelectedOneWireMasterCom {
+        case "PCAN":
+        Keystroke4()
+        Sleep 100 
+        Keystroke1()
+        Sleep 100 
+        Keystroke3()
+        Sleep 100 
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 100
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 100
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+
+        ReopenAfterIns()
+
+        case "QPSK/MasterBox":
+        Keystroke4()
+        Sleep 100
+        Keystroke2()
+        Sleep 100 
+        Keystroke3()
+        Sleep 200
+        ControlSend  OneWireCOMPort.Text ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 100 
+
+        ReopenAfterIns()
+
+        case "OFDM":
+            Keystroke4()
+    }
+}
+
+
 
 ButtonClick(*) {
     ; Send a keystroke to the console window
