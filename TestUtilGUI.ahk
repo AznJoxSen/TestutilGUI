@@ -132,10 +132,10 @@ CheckFile(*){
 */
 
 ;Create tabs
-Tab := MyGui.Add("Tab3",, ["Q-Telemetry", "Solenoid", "TC Node" , "1-Wire"])
+Tab := MyGui.Add("Tab3",, ["Q-Telemetry", "Solenoid", "TC Node" , "1-Wire", "RSS"])
 Tab.Font := "Bold"
 
-;, "RSS", "Anchor", "Orientation"
+;, "Anchor", "Orientation"
 
 ;For Q-Telemetry Tab
 Tab.UseTab("Q-telemetry")
@@ -230,6 +230,8 @@ MyGui.Add("Text",, "Check Current Settings")
 MyGui.Add("Button",, "Check").OnEvent("Click", QTCheck)
 
 
+;----------------------------------------------------------------
+
 ;For Solenoid Tab
 Tab.UseTab("Solenoid")
 
@@ -258,6 +260,9 @@ RefreshBtn(*)
 FileAppend("test","ComPorts.txt",)
 
 COMPort.Delete()
+QTCOMPort.Delete()
+TCCOMPort.Delete()
+OneWireCOMPort.Delete()
 
 RunWaitOne(command) {
     shell := ComObject("WScript.Shell")
@@ -286,7 +291,11 @@ for index, line in Lines {
         Words.push(match[])
     }
 }
+
 COMPort.Add(Words)
+QTCOMPort.Add(Words)
+TCCOMPort.Add(Words)
+OneWireCOMPort.Add(Words)
 
 }
 
@@ -380,7 +389,7 @@ MyGui.Add("Button", "" ,"Go To Menu").OnEvent("Click", AccessSolenoidEz)
 MyGui.Add("Text","", "Rescan Nodes If Necessecary")
 MyGui.Add("Button",, "Rescan").OnEvent("Click", PingNodes)
 
-MyGui.Add("Button","x370 y381", "Re-Initialize PCAN").OnEvent("Click", PCANReinitialize)
+MyGui.Add("Button","x370 y381", "Re-Initialize PCAN").OnEvent("Click", SolPCANReinitialize)
 
 ;Choose what solenoid to access
 MyGui.Add("Text","x290 y420", "Choose Solenoid Board")
@@ -445,7 +454,7 @@ SensorBb := MyGui.Add("Edit")
 SensorBm := MyGui.Add("Edit")
 SensorAb := MyGui.Add("Edit")
 SensorAm := MyGui.Add("Edit")
-SensorValuesBTN := MyGui.Add("Button",, "Update")
+SensorValuesBTN := MyGui.Add("Button",, "Update Values")
 SensorValuesBTN.OnEvent("Click", UpdateSensorValues)
 
 ;Set font for sensor value edit box
@@ -497,6 +506,9 @@ ToolID.OnEvent("LoseFocus", SolIdBTNUnFocus)
 ;Set font for ID value edit box
 AltusID.SetFont("cBlack")
 ToolID.SetFont("cBlack")
+
+
+;----------------------------------------------------------------
 
 ; For TC Node tab
 Tab.UseTab("TC Node")
@@ -587,11 +599,13 @@ MyGui.Add("Button", "" ,"Go To Menu").OnEvent("Click", TCMenu)
 MyGui.Add("Text","", "Rescan Nodes If Necessecary")
 MyGui.Add("Button",, "Rescan").OnEvent("Click", PingNodes)
 
-MyGui.Add("Button","x370 y381", "Re-Initialize PCAN").OnEvent("Click", TCPCANReinitialize)
+MyGui.Add("Button","x370 y381", "Re-Initialize PCAN").OnEvent("Click", PCANReinitialize)
 
 MyGui.Add("Text","x290 y420", "Choose TC Node")
 TCAccess := MyGui.AddDropDownList("W160", ["Upper PR STR - 0x30", "Lower PR STR - 0x31", "Upper TC - 0x32", "Lower TC - 0x33", "DDR TC SJR - 0x34"])
 TCAccess.OnEvent("Change", UseTCID)
+
+MyGui.Add("GroupBox","x590 y35 W190 H125")
 
 MyGui.Add("Text","x600 y39", "Change TC Node Usage")
 TCUsage := MyGui.AddDropDownList("W160", ["Upper PR STR - 0x30", "Lower PR STR - 0x31", "Upper TC - 0x32", "Lower TC - 0x33", "DDR TC SJR - 0x34"])
@@ -600,12 +614,15 @@ TCUsage.OnEvent("Change", ChangeTCID)
 MyGui.Add("Text","" , "Check Current Settings")
 MyGui.Add("Button",,"Check").OnEvent("Click", CheckCal)
 
+MyGui.Add("GroupBox","x790 y35 W325 H130")
+
 ;Text for IDs
-MyGui.Add("Text","x800 y39", "Update Altus/Board ID")
+MyGui.Add("Text","x800 y60", "Update Altus/Board ID")
 MyGui.Add("Text",, "Update Tool ID")
 
 ;Input edit box for IDs
-TCAltusID := MyGui.Add("Edit","x950 y39")
+MyGui.Add("Text","x950 y39","Input IDs")
+TCAltusID := MyGui.Add("Edit","x950 y60")
 TCToolID := MyGui.Add("Edit")
 
 TCAltusID.SetFont("cBlack")
@@ -620,6 +637,8 @@ TCAltusID.OnEvent("LoseFocus", TCBtnUnFocus)
 TCToolID.OnEvent("Focus", TCBtnFocus)
 TCToolID.OnEvent("LoseFocus", TCBtnUnFocus)
 
+
+;----------------------------------------------------------------
 
 ;For 1 Wire Master/Slave
 Tab.UseTab("1-Wire")
@@ -643,9 +662,9 @@ OneWireCOMPort := MyGui.AddDropDownList("W75", Words)
 RefreshOneWire := MyGui.Add("Button","x121 y145", "Refresh")
 RefreshOneWire.OnEvent("Click", RefreshBtn)
 
-MyGui.Add("GroupBox", "x280 y35 H235 W300")
+MyGui.Add("GroupBox", "x280 y35 H180 W260")
 
-MyGui.Add("Text","x290 y39", "FW Selected for Installing")
+MyGui.Add("Text","x290 y39", "FW Selected for Installing 1-Wire Master")
 OneWireMasterFW := MyGui.Add("Edit", "ReadOnly")
 OneWireMasterFW.SetFont("cBlack")
 
@@ -693,10 +712,72 @@ MyGui.Add("Text",, "Install Firmware to One Wire Master")
 
 MyGui.Add("Button",, "Install").OnEvent("Click", InstallFWOneWireMaster)
 
-;MyGui.Add("GroupBox","x280 y300 H180 W230")
+
+MyGui.Add("GroupBox","x560 y35 W325 H130")
+
+;Text for IDs
+MyGui.Add("Text","x570 y60", "Update Altus/Board ID")
+MyGui.Add("Text",, "Update Tool ID")
+
+;Input edit box for IDs
+MyGui.Add("Text","x720 y39","Input One Wire Master IDs")
+OneWireMasterAltusID := MyGui.Add("Edit","x720 y60")
+OneWireMasterToolID := MyGui.Add("Edit")
+
+OneWireMasterAltusID.SetFont("cBlack")
+OneWireMasterToolID.SetFont("cBlack")
+
+OneWireMasterIdBtn := MyGui.Add("Button",, "Update IDs")
+OneWireMasterIdBtn.OnEvent("Click", UpdateOneWireMasterIDs)
+
+OneWireMasterAltusID.OnEvent("Focus", OneWireMasterBtnFocus)
+OneWireMasterAltusID.OnEvent("LoseFocus", OneWireMasterBtnUnFocus)
+
+OneWireMasterToolID.OnEvent("Focus", OneWireMasterBtnFocus)
+OneWireMasterToolID.OnEvent("LoseFocus", OneWireMasterBtnUnFocus)
 
 
+;----------------------------------------------------------------
 
+;For RSS
+Tab.UseTab("RSS")
+MyGui.Add("Button","x1000 y630","Restart TestUtility").OnEvent("Click", RestartTestUtil)
+
+MyGui.Add("GroupBox","x18 y35 W255 H150")
+
+;Selecting communication option for solenoid
+MyGui.Add("Text","x26 y39","Select Communication Choice")
+RSSComChoice := MyGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM",])
+;ComChoice.OnEvent("Change", SendKeystrokeFromListbox)
+RSSComChoice.Choose("PCAN")
+MyGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
+
+;Manually choose com port number
+MyGui.Add("Text",, "Select COM Port Number")
+RSSCOMPort := MyGui.AddDropDownList("W75", Words)
+
+
+RefreshRSS := MyGui.Add("Button","x121 y145", "Refresh")
+RefreshRSS.OnEvent("Click", RefreshBtn)
+
+
+MyGui.Add("GroupBox","x280 y300 H180 W230")
+
+;Access TC NOde
+MyGui.Add("Text","x290 y300", "Go to Access TC Node Menu")
+MyGui.Add("Button", "" ,"Go To Menu").OnEvent("Click", RSSMenu)
+
+;Rescan of TC Nodes CAN IDs
+MyGui.Add("Text","", "Rescan Nodes If Necessecary")
+MyGui.Add("Button",, "Rescan").OnEvent("Click", PingNodes)
+
+MyGui.Add("Button","x370 y381", "Re-Initialize PCAN").OnEvent("Click", PCANReinitialize)
+
+MyGui.Add("Text","x290 y420", "Choose RSS")
+RSSAccess := MyGui.AddDropDownList("W160", ["Upper RSS - 0x1A","Lower RSS - 0x1B"])
+RSSAccess.OnEvent("Change", UseRSSID)
+
+;----------------------------------------------------------------
 
 ;Disable Wheel scrolling
 
@@ -1167,15 +1248,16 @@ PingNodes(*){
     Sleep 500
 }
 
-PCANReinitialize(*){
+SolPCANReinitialize(*){
     Keystroke9()
     Sleep 500
 }
 
-TCPCANReinitialize(*){
+PCANReinitialize(*){
     Keystroke7()
     Sleep 500
 }
+
 
 AccessSolenoid(*){
     Keystroke1()
@@ -2081,6 +2163,110 @@ InstallFWOneWireMaster(*){
     }
 }
 
+OneWireMasterBtnFocus(*){
+    OneWireMasterIdBtn.Opt("+Default")
+}
+
+OneWireMasterBtnUnFocus(*){
+    OneWireMasterIdBtn.Opt("-Default")
+}
+
+
+UpdateOneWireMasterIDs(*){
+
+    if (OneWireMasterAltusID.Value != "" && OneWireMasterToolID.Value == ""){
+        Hex0x8A()
+        Sleep 400
+        ControlSend  OneWireMasterAltusID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        OneWireMasterAltusID.Value := ""
+        Sleep 300
+        Hex0xCB()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+}
+    else if OneWireMasterToolID.Value != "" && OneWireMasterAltusID.Value == ""{
+        Hex0x8C()
+        Sleep 400
+        ControlSend  OneWireMasterToolID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        OneWireMasterToolID.Value := ""
+        Sleep 300
+        Hex0xCB()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+}
+    else if OneWireMasterAltusID.Value != "" && OneWireMasterToolID.Value != ""{
+        Hex0x8A()
+        Sleep 200
+        ControlSend  OneWireMasterAltusID.Value,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}",, "tkToolUtility.exe"
+        Sleep 600
+        OneWireMasterAltusID.Value := ""
+        Sleep 400
+        Hex0x8C()
+        Sleep 200
+        ControlSend  OneWireMasterToolID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        OneWireMasterToolID.Value := ""
+        Sleep 300
+        Hex0xCB()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+    }
+    else{
+        return
+    }
+}
+
+
+RSSMenu(*){
+    Keystroke5()
+    Sleep 200
+    SelectedRSSOption := RSSComChoice.Text
+    switch SelectedRSSOption {
+        case "PCAN":
+            Keystroke1()
+            Sleep 200
+            Keystroke1()
+        case "QPSK/MasterBox":
+            Keystroke2()
+            Sleep 200
+            Keystroke1()
+            ControlSend  RSSCOMPort.Text ,, "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+        case "OFDM":
+            Keystroke3()
+            Sleep 200
+            Keystroke3()
+    }
+}
+
+UseRSSID(*){
+    Keystroke4()
+    Sleep 200
+    SelectRSS := RSSAccess.Text
+    Switch SelectRSS{
+        Case "Upper RSS - 0x1A" :
+        Hex0x1A()
+        Sleep 100
+        
+
+        Case "Lower RSS - 0x1B" :
+        Hex0x1B()
+        Sleep 100
+        
+
+    }
+}
+
 
 
 ButtonClick(*) {
@@ -2257,6 +2443,22 @@ Hex0x3(*){
     ControlSend "{0}",, "tkToolUtility.exe"
     ControlSend "{x}",, "tkToolUtility.exe"
     ControlSend "{3}",, "tkToolUtility.exe"
+}
+
+Hex0x1A(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{1}",, "tkToolUtility.exe"
+    ControlSend "{A}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+
+Hex0x1B(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{1}",, "tkToolUtility.exe"
+    ControlSend "{B}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
 }
 
 MCSave(*){
