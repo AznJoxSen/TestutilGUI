@@ -397,7 +397,7 @@ SolenoidAccess := MyGui.AddDropDownList("W170", ["FlexDrive - 0x12", "MotorPump 
 SolenoidAccess.OnEvent("Change", SolenoidIDs)
 ;CBS_DISABLENOSCROLL
 
-MyGui.Add("GroupBox","x590 y35 W190 H290")
+MyGui.Add("GroupBox","x590 y35 W190 H236")
 
 ;Changing Solenoid Usage
 MyGui.Add("Text","x600 y39", "Change Solenoid Usage")
@@ -405,14 +405,11 @@ SolenoidUse := MyGui.AddDropDownList("W170", ["FlexDrive - 0x12", "MotorPump - 0
 SolenoidUse.OnEvent("Change", SolenoidUsage)
 
 ;Changing sensor types
-MyGui.Add("Text","" , "Choose Sensor Type")
+MyGui.Add("Text","" , "Change Sensor Type")
 SensorType := MyGui.AddDropDownList("W170",["HallEffect", "QuadEncoder", "Mech", "Unknown"])
 SensorType.OnEvent("Change", SensorTypeChange)
 
-;Changing sensor values
-MyGui.Add("Text","" , "Update Sensor Data For:")
-SolenoidSensors := MyGui.AddDropDownList("W170", ["DDP3 '9a' Linear", "DDP3 '9b' Linear", "Comp '10' Linear", "AncUpper '13a' Quad", "AncLower '13b' Quad", "Sensor6 'Not in Use'", "Sensor7 'Not in Use'"])
-SolenoidSensors.OnEvent("Change", SensorIDs)
+
 
 MyGui.Add("Text","" , "Check Current Settings")
 MyGui.Add("Button",,"Check").OnEvent("Click", CheckSet)
@@ -427,10 +424,10 @@ MyGui.Add("Text","x600 y360" , "For EL.LAB Use Only!")
 MyGui.Add("Text","" ,"Test Solenoid Switching")
 MyGui.Add("Button",, "Test Switching").OnEvent("Click", SolenoidSwitching)
 
-MyGui.Add("GroupBox","x790 y35 W325 H415")
+MyGui.Add("GroupBox","x790 y35 W325 H455")
 
 ;Text for sensor values
-MyGui.Add("Text","x800 y60", "SensorLinear m")
+MyGui.Add("Text","x800 y105", "SensorLinear m")
 MyGui.Add("Text",, "SensorLinear b")
 MyGui.Add("Text",, "SensorQuadtratic Cb")
 MyGui.Add("Text",, "SensorQuadtratic Cm")
@@ -444,9 +441,14 @@ MyGui.Add("Text",, "Update Sensor Values")
 MyGui.Add("Text",, "Update Altus/Board ID")
 MyGui.Add("Text",, "Update Tool ID")
 
+;Changing sensor values
+MyGui.Add("Text","x800 y39" , "Choose Sensor To Update Values")
+SolenoidSensors := MyGui.AddDropDownList("W230", ["DDP3 '9a' Linear", "DDP3 '9b' Linear", "Comp '10' Linear", "AncUpper '13a' Quad", "AncLower '13b' Quad", "Sensor6 'Not in Use'", "Sensor7 'Not in Use'"])
+SolenoidSensors.OnEvent("Change", SensorIDs)
 ;Input edit box for sensor values
-MyGui.Add("Text","x950 y39","Add Sensor values")
-Sensorm := MyGui.Add("Edit",)
+
+;MyGui.Add("Text","x950 y80","Add Sensor values")
+Sensorm := MyGui.Add("Edit","x950 y100")
 Sensorb := MyGui.Add("Edit")
 SensorCb := MyGui.Add("Edit")
 SensorCm := MyGui.Add("Edit")
@@ -859,6 +861,8 @@ RestartTestUtil(*){
     ToolID.Value := ""
     TCAltusID.Value := ""
     TCToolID.Value := ""
+    OneWireMasterAltusID.Value := ""
+    OneWireMasterToolID := ""
 
     ;QTComChoice.Choose 0
     QTCOMPort.Choose 0
@@ -875,6 +879,10 @@ RestartTestUtil(*){
     ChooseTCFWIns.Choose 0
     TCAccess.Choose 0
     TCUsage.Choose 0
+    OneWireCOMPort.Choose 0
+    RSSCOMPort.Choose 0
+    RSSAccess.Choose 0
+
     WinMove(0,0,,, "ahk_exe tkToolUtility.exe")
     Sleep 200
     WinActivate ("V2.1 TestUtilityGUI For Use With TestUtilityV40")
@@ -2134,7 +2142,9 @@ InstallFWOneWireMaster(*){
         Sleep 100 
         Keystroke3()
         Sleep 100 
-        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        ControlSend  "{y}", , "tkToolUtility.exe"
+        Sleep 100
+        Hex0x3A()
         Sleep 100
         ControlSend  "{Enter}", , "tkToolUtility.exe"
         Sleep 100
@@ -2458,6 +2468,15 @@ Hex0x1B(*){
     ControlSend "{x}",, "tkToolUtility.exe"
     ControlSend "{1}",, "tkToolUtility.exe"
     ControlSend "{B}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+
+
+Hex0x3A(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{3}",, "tkToolUtility.exe"
+    ControlSend "{A}",, "tkToolUtility.exe"
     ControlSend  "{Enter}", , "tkToolUtility.exe"
 }
 
