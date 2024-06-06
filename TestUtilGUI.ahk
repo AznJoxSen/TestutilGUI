@@ -5,7 +5,7 @@ SetWorkingDir(A_ScriptDir)
 iconPath := A_ScriptDir . "\\icoFiles\\toolsICO.ico"
 TraySetIcon (iconPath)
 
-MyGui := Gui(, "V2.1 TestUtilityGUI For Use With TestUtilityV40")
+MyGui := Gui(, "V2.2 TestUtilityGUI For Use With TestUtilityV40")
 
 SetDarkWindowFrame(MyGui)
 MyGui.Setfont("s10 cWhite")
@@ -121,7 +121,7 @@ CheckFile(*){
         SolDisplay.Value := SolTestContents
         ;MsgBox "ts"
         ;Sleep 50
-        SendMessage(0x0115, 7, 0, "Edit5", "V2.1 TestUtilityGUI For Use With TestUtilityV40")
+        SendMessage(0x0115, 7, 0, "Edit5", "V2.2 TestUtilityGUI For Use With TestUtilityV40")
         
     }
     ;else{
@@ -885,7 +885,7 @@ RestartTestUtil(*){
 
     WinMove(0,0,,, "ahk_exe tkToolUtility.exe")
     Sleep 200
-    WinActivate ("V2.1 TestUtilityGUI For Use With TestUtilityV40")
+    WinActivate ("V2.2 TestUtilityGUI For Use With TestUtilityV40")
     ControlSend  "{Enter}", , "tkToolUtility.exe"
     SetTimer CheckProgram, 500
 }
@@ -909,7 +909,7 @@ InstallSolenoidEz(*){
     Sleep 500
     WinMove(0,0,,, "ahk_exe tkToolUtility.exe")
     Sleep 500
-    WinActivate ("V2.1 TestUtilityGUI For Use With TestUtilityV40") 
+    WinActivate ("V2.2 TestUtilityGUI For Use With TestUtilityV40") 
     ControlSend  "{Enter}", , "tkToolUtility.exe"
 }
 
