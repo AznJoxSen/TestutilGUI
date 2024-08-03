@@ -5,7 +5,7 @@ SetWorkingDir(A_ScriptDir)
 iconPath := A_ScriptDir . "\\icoFiles\\toolsICO.ico"
 TraySetIcon (iconPath)
 
-MyGui := Gui(, "V2.3 TestUtilityGUI For Use With TestUtilityV40")
+MyGui := Gui(, "V2.2 TestUtilityGUI For Use With TestUtilityV40")
 
 SetDarkWindowFrame(MyGui)
 MyGui.Setfont("s10 cWhite")
@@ -121,7 +121,7 @@ CheckFile(*){
         SolDisplay.Value := SolTestContents
         ;MsgBox "ts"
         ;Sleep 50
-        SendMessage(0x0115, 7, 0, "Edit5", "V2.3 TestUtilityGUI For Use With TestUtilityV40")
+        SendMessage(0x0115, 7, 0, "Edit5", "V2.2 TestUtilityGUI For Use With TestUtilityV40")
         
     }
     ;else{
@@ -132,13 +132,13 @@ CheckFile(*){
 */
 
 ;Create tabs
-Tab := MyGui.Add("Tab3",, ["Q-Telemetry", "Solenoid", "TC Node" , "1-Wire", "RSS"])
+Tab := MyGui.Add("Tab3","-Wrap", ["Q-Telemetry", "Solenoid", "TC Node" , "1-Wire", "RSS", "Anchor Board", "Orientation"])
 Tab.Font := "Bold"
-
-;, "Anchor", "Orientation"
 
 ;For Q-Telemetry Tab
 Tab.UseTab("Q-telemetry")
+
+
 
 MyGui.Add("Button","x1000 y630","Restart TestUtility").OnEvent("Click", RestartTestUtil)
 
@@ -157,6 +157,16 @@ QTCOMPort := MyGui.AddDropDownList("W75", Words)
 
 RefreshQT := MyGui.Add("Button","x121 y114", "Refresh")
 RefreshQT.OnEvent("Click", RefreshBtn)
+
+MyGui.Add("Text", " x26 y600", "Manual input for TestUtil")
+QTInput := MyGui.Add("Edit", "")
+QTInput.SetFont("cBlack")
+
+QTInput.OnEvent("Focus", QTManBTNFocus)
+QTInput.OnEvent("LoseFocus", QTManBTNUnFocus)
+
+QTManInput := MyGui.Add("Button","x180 y620","Submit")
+QTManInput.OnEvent("Click", QTInputValueEnter)
 
 ;Choose Board
 MyGui.Add("Text","x26 y147", "Choose Board Type")
@@ -262,7 +272,7 @@ FileAppend("test","ComPorts.txt",)
 COMPort.Delete()
 QTCOMPort.Delete()
 TCCOMPort.Delete()
-OneWireCOMPort.Delete()
+OneWireMasterCOMPort.Delete()
 
 RunWaitOne(command) {
     shell := ComObject("WScript.Shell")
@@ -295,7 +305,7 @@ for index, line in Lines {
 COMPort.Add(Words)
 QTCOMPort.Add(Words)
 TCCOMPort.Add(Words)
-OneWireCOMPort.Add(Words)
+OneWireMasterCOMPort.Add(Words)
 
 }
 
@@ -424,10 +434,10 @@ MyGui.Add("Text","x600 y360" , "For EL.LAB Use Only!")
 MyGui.Add("Text","" ,"Test Solenoid Switching")
 MyGui.Add("Button",, "Test Switching").OnEvent("Click", SolenoidSwitching)
 
-MyGui.Add("GroupBox","x790 y35 W325 H455")
+MyGui.Add("GroupBox","x790 y35 W325 H525")
 
 ;Text for sensor values
-MyGui.Add("Text","x800 y105", "SensorLinear m")
+MyGui.Add("Text","x800 y172", "SensorLinear m")
 MyGui.Add("Text",, "SensorLinear b")
 MyGui.Add("Text",, "SensorQuadtratic Cb")
 MyGui.Add("Text",, "SensorQuadtratic Cm")
@@ -441,14 +451,29 @@ MyGui.Add("Text",, "Update Sensor Values")
 MyGui.Add("Text",, "Update Altus/Board ID")
 MyGui.Add("Text",, "Update Tool ID")
 
+
+MyGui.Add("Text","x800 y39" , "Select Approiate Application")
+SolRadioBtn1 := MyGui.Add("Radio", "x800 y60 Checked", "For Everything Else Sensors")
+SolRadioBtn2 := MyGui.Add("Radio", "x800 y80", "For CompactStroker Sensors")
+
+TheRestDropDownListArray := ["DDP3 '9a' Linear", "DDP3 '9b' Linear", "Comp '10' Linear", "AncUpper '13a' Quad", "AncLower '13b' Quad", "Sensor6 'Not in Use'", "Sensor7 'Not in Use'"]
+
+CompactStrokerDropDownListArray := ["DDP3 'P-Sa' Linear", "DDP3 'P-Sb' Linear", "DDP3 'P-LF' Linear", "DDP500 'P-Comp' Linear", "DDP3 'P-TW' Linear", "AncUpper 'P-Ga' Quad", "AncLower 'P-Gb' Quad"]
+
+
 ;Changing sensor values
-MyGui.Add("Text","x800 y39" , "Choose Sensor To Update Values")
-SolenoidSensors := MyGui.AddDropDownList("W230", ["DDP3 '9a' Linear", "DDP3 '9b' Linear", "Comp '10' Linear", "AncUpper '13a' Quad", "AncLower '13b' Quad", "Sensor6 'Not in Use'", "Sensor7 'Not in Use'"])
-SolenoidSensors.OnEvent("Change", SensorIDs)
+MyGui.Add("Text","x800 y110" , "Choose Sensor To Update Values")
+SolenoidSensorsDropDownList := MyGui.AddDropDownList("W230", TheRestDropDownListArray)
+SolenoidSensorsDropDownList.OnEvent("Change", SensorIDs)
 ;Input edit box for sensor values
 
+SolRadioBtn1.OnEvent("Click", SolenoidSensorTypes)
+SolRadioBtn2.OnEvent("Click", SolenoidSensorTypesStroker)
+
+
+
 ;MyGui.Add("Text","x950 y80","Add Sensor values")
-Sensorm := MyGui.Add("Edit","x950 y100")
+Sensorm := MyGui.Add("Edit","x950 y167")
 Sensorb := MyGui.Add("Edit")
 SensorCb := MyGui.Add("Edit")
 SensorCm := MyGui.Add("Edit")
@@ -534,6 +559,20 @@ TCCOMPort := MyGui.AddDropDownList("W75", Words)
 
 RefreshTC := MyGui.Add("Button","x121 y145", "Refresh")
 RefreshTC.OnEvent("Click", RefreshBtn)
+
+
+MyGui.Add("Text", " x26 y600", "Manual input for TestUtil")
+TCInput := MyGui.Add("Edit", "")
+TCInput.SetFont("cBlack")
+
+
+
+TCInput.OnEvent("Focus", TCManBTNFocus)
+TCInput.OnEvent("LoseFocus", TCManBTNUnFocus)
+
+TCManInput := MyGui.Add("Button","x180 y620","Submit")
+TCManInput.OnEvent("Click", TCInputValueEnter)
+
 
 MyGui.Add("GroupBox", "x280 y35 H235 W300")
 
@@ -648,21 +687,34 @@ MyGui.Add("Button","x1000 y630","Restart TestUtility").OnEvent("Click", RestartT
 
 MyGui.Add("GroupBox","x18 y35 W255 H150")
 
-;Selecting communication option for TC Node
+;Selecting communication option for 1-wire
 MyGui.Add("Text","x26 y39","Select Communication Choice")
-OneWireComChoice := MyGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM"])
-OneWireComChoice.Choose("PCAN")
+OneWireMasterComChoice := MyGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM"])
+OneWireMasterComChoice.Choose("PCAN")
 
 MyGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
 
 ;Manually choose com port number
 MyGui.Add("Text",, "Select COM Port Number")
-OneWireCOMPort := MyGui.AddDropDownList("W75", Words)
+OneWireMasterCOMPort := MyGui.AddDropDownList("W75", Words)
 ;TCCOMPort.SetFont("cBlack")
 ;MyGui.Add("UpDown") 
 
 RefreshOneWire := MyGui.Add("Button","x121 y145", "Refresh")
 RefreshOneWire.OnEvent("Click", RefreshBtn)
+
+
+MyGui.Add("Text", " x26 y600", "Manual input for TestUtil")
+OneWireMasterInput := MyGui.Add("Edit", "")
+OneWireMasterInput.SetFont("cBlack")
+
+OneWireMasterInput.OnEvent("Focus", OneWireMasterManBTNFocus)
+OneWireMasterInput.OnEvent("LoseFocus", OneWireMasterManBTNUnFocus)
+
+OneWireMasterManInput := MyGui.Add("Button","x180 y620","Submit")
+OneWireMasterManInput.OnEvent("Click", OneWireMasterInputValueEnter)
+
+
 
 MyGui.Add("GroupBox", "x280 y35 H180 W260")
 
@@ -714,6 +766,22 @@ MyGui.Add("Text",, "Install Firmware to One Wire Master")
 
 MyGui.Add("Button",, "Install").OnEvent("Click", InstallFWOneWireMaster)
 
+MyGui.Add("GroupBox","x280 y300 H180 W240")
+
+;Access One Wire Master NOde
+MyGui.Add("Text","x290 y300", "Go to Access One Wire Master Menu")
+MyGui.Add("Button", "" ,"Go To Menu").OnEvent("Click", OneWireMasterMenu)
+
+;Rescan of One Wire Master Nodes CAN IDs
+MyGui.Add("Text","", "Rescan Nodes If Necessecary")
+MyGui.Add("Button",, "Rescan").OnEvent("Click", PingNodes)
+
+MyGui.Add("Button","x370 y381", "Re-Initialize PCAN").OnEvent("Click", PCANReinitialize)
+
+MyGui.Add("Text","x290 y420", "Choose One Wire Master")
+OneWireMasterAccess := MyGui.AddDropDownList("W170", ["One Wire Master - 0x3A"])
+OneWireMasterAccess.OnEvent("Change", UseOneWireMasterID)
+
 
 MyGui.Add("GroupBox","x560 y35 W325 H130")
 
@@ -747,7 +815,7 @@ MyGui.Add("Button","x1000 y630","Restart TestUtility").OnEvent("Click", RestartT
 
 MyGui.Add("GroupBox","x18 y35 W255 H150")
 
-;Selecting communication option for solenoid
+;Selecting communication option for RSS
 MyGui.Add("Text","x26 y39","Select Communication Choice")
 RSSComChoice := MyGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM",])
 ;ComChoice.OnEvent("Change", SendKeystrokeFromListbox)
@@ -762,14 +830,81 @@ RSSCOMPort := MyGui.AddDropDownList("W75", Words)
 RefreshRSS := MyGui.Add("Button","x121 y145", "Refresh")
 RefreshRSS.OnEvent("Click", RefreshBtn)
 
+MyGui.Add("Text", " x26 y600", "Manual input for TestUtil")
+RSSInput := MyGui.Add("Edit", "")
+RSSInput.SetFont("cBlack")
+
+RSSInput.OnEvent("Focus", RSSManBTNFocus)
+RSSInput.OnEvent("LoseFocus", RSSManBTNUnFocus)
+
+RSSManInput := MyGui.Add("Button","x180 y620","Submit")
+RSSManInput.OnEvent("Click", RSSInputValueEnter)
+
+
+MyGui.Add("GroupBox", "x280 y35 H235 W310")
+
+MyGui.Add("Text","x290 y39", "FW Selected for Installing")
+RSSFW := MyGui.Add("Edit", "ReadOnly")
+RSSFW.SetFont("cBlack")
+
+fileRSSContents := FileRead("hexFiles_RSS\RSS_leinApp_bl.hex")
+RSSFolder := ("RSS FW\*.hex")
+
+Loop Files RSSFolder, "F"
+    {
+        FilePathRSS := A_LoopFileFullPath
+        CurrentFileRSS := FileRead(FilePathRSS)
+
+if (fileRSSContents == CurrentFileRSS) 
+    {      
+    FWRSSFile := A_LoopFileName
+        RSSFW.Text := FWRSSFile
+
+    break
+    }
+    }
+
+CheckFWLoopRSS(*){
+Loop Files RSSFolder, "F"
+    {
+        fileRSSContents := FileRead("hexFiles_RSS\RSS_leinApp_bl.hex")
+        FilePathRSS := A_LoopFileFullPath
+
+        CurrentFileRSS := FileRead(FilePathRSS)
+if (fileRSSContents == CurrentFileRSS) 
+    {
+    FWRSSFile := A_LoopFileName
+        RSSFW.Text := FWRSSFile
+        FWRSSFile := ""
+        CurrentFileRSS := ""
+    break
+    }
+    }
+}
+
+
+
+
+;Browse for FW for RSS Node
+MyGui.Add("Text","", "Select Firmware Version")
+MyGui.Add("Button",, "Browse").OnEvent("Click", OpenFiledialogRSS)
+
+MyGui.Add("Text",, "Choose an RSS Node if more than one connected")
+ChooseRSSFWIns := MyGui.AddDropDownList("W160", ["Upper RSS - 0x1A","Lower RSS - 0x1B"])
+
+;Install FW to RSS Node
+MyGui.Add("Text",, "Install Firmware to RSS Node")
+
+MyGui.Add("Button",, "Install").OnEvent("Click", InstallFWRSS)
+
 
 MyGui.Add("GroupBox","x280 y300 H180 W230")
 
-;Access TC NOde
-MyGui.Add("Text","x290 y300", "Go to Access TC Node Menu")
+;Access RSS NOde
+MyGui.Add("Text","x290 y300", "Go to Access RSS Node Menu")
 MyGui.Add("Button", "" ,"Go To Menu").OnEvent("Click", RSSMenu)
 
-;Rescan of TC Nodes CAN IDs
+;Rescan of RSS Nodes CAN IDs
 MyGui.Add("Text","", "Rescan Nodes If Necessecary")
 MyGui.Add("Button",, "Rescan").OnEvent("Click", PingNodes)
 
@@ -778,6 +913,224 @@ MyGui.Add("Button","x370 y381", "Re-Initialize PCAN").OnEvent("Click", PCANReini
 MyGui.Add("Text","x290 y420", "Choose RSS")
 RSSAccess := MyGui.AddDropDownList("W160", ["Upper RSS - 0x1A","Lower RSS - 0x1B"])
 RSSAccess.OnEvent("Change", UseRSSID)
+
+;----------------------------------------------------------------
+
+;For Anchor Board
+Tab.UseTab("Anchor Board")
+MyGui.Add("Button","x1000 y630","Restart TestUtility").OnEvent("Click", RestartTestUtil)
+
+MyGui.Add("GroupBox","x18 y35 W255 H150")
+
+;Selecting communication option for Anchor Board
+MyGui.Add("Text","x26 y39","Select Communication Choice")
+AnchorBoardComChoice := MyGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM",])
+AnchorBoardComChoice.Choose("PCAN")
+MyGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
+
+;Manually choose com port number
+MyGui.Add("Text",, "Select COM Port Number")
+AnchorBoardCOMPort := MyGui.AddDropDownList("W75", Words)
+
+
+RefreshAnchorBoard := MyGui.Add("Button","x121 y145", "Refresh")
+RefreshAnchorBoard.OnEvent("Click", RefreshBtn)
+
+
+
+MyGui.Add("Text", " x26 y600", "Manual input for TestUtil")
+AnchorBoardInput := MyGui.Add("Edit", "")
+AnchorBoardInput.SetFont("cBlack")
+
+AnchorBoardInput.OnEvent("Focus", AnchorBoardManBTNFocus)
+AnchorBoardInput.OnEvent("LoseFocus", AnchorBoardManBTNUnFocus)
+
+AnchorBoardManInput := MyGui.Add("Button","x180 y620","Submit")
+AnchorBoardManInput.OnEvent("Click", AnchorBoardInputValueEnter)
+
+
+MyGui.Add("GroupBox", "x280 y35 H235 W370")
+
+MyGui.Add("Text","x290 y39", "FW Selected for Installing")
+AnchorBoardFW := MyGui.Add("Edit", "ReadOnly")
+AnchorBoardFW.SetFont("cBlack")
+
+fileAnchorBoardContents := FileRead("hexFiles_ANC\ANC_leinApp_bl.hex")
+AnchorBoardFolder := ("Anchor Board FW\*.hex")
+
+Loop Files AnchorBoardFolder, "F"
+    {
+        FilePathAnchorBoard := A_LoopFileFullPath
+        CurrentFileAnchorBoard := FileRead(FilePathAnchorBoard)
+
+if (fileAnchorBoardContents == CurrentFileAnchorBoard) 
+    {      
+    FWAnchorBoardFile := A_LoopFileName
+        AnchorBoardFW.Text := FWAnchorBoardFile
+
+    break
+    }
+    }
+
+CheckFWLoopAnchorBoard(*){
+Loop Files AnchorBoardFolder, "F"
+    {
+        fileAnchorBoardContents := FileRead("hexFiles_ANC\ANC_leinApp_bl.hex")
+        FilePathAnchorBoard := A_LoopFileFullPath
+
+        CurrentFileAnchorBoard := FileRead(FilePathAnchorBoard)
+if (fileAnchorBoardContents == CurrentFileAnchorBoard) 
+    {
+    FWAnchorBoardFile := A_LoopFileName
+        AnchorBoardFW.Text := FWAnchorBoardFile
+        FWAnchorBoardFile := ""
+        CurrentFileAnchorBoard := ""
+    break
+    }
+    }
+}
+
+AnchorBoardArrayID := ["0x3C", "0x3D", "0x3E"]
+
+
+;Browse for FW for Anchor Board Node
+MyGui.Add("Text","", "Select Firmware Version")
+MyGui.Add("Button",, "Browse").OnEvent("Click", OpenFiledialogAnchorBoard)
+
+MyGui.Add("Text",, "Choose an Anchor Board Node if more than one connected")
+ChooseAnchorBoardFWIns := MyGui.AddDropDownList("W160", AnchorBoardArrayID)
+
+;Install FW to Anchor Board Node
+MyGui.Add("Text",, "Install Firmware to Anchor Board Node")
+
+MyGui.Add("Button",, "Install").OnEvent("Click", InstallFWAnchorBoard)
+
+
+MyGui.Add("GroupBox","x280 y300 H180 W260")
+
+;Access Anchor Board NOde
+MyGui.Add("Text","x290 y300", "Go to Access Anchor Board Node Menu")
+MyGui.Add("Button", "" ,"Go To Menu").OnEvent("Click", AnchorBoardMenu)
+
+;Rescan of Anchor Board Nodes CAN IDs
+MyGui.Add("Text","", "Rescan Nodes If Necessecary")
+MyGui.Add("Button",, "Rescan").OnEvent("Click", PingNodes)
+
+MyGui.Add("Button","x370 y381", "Re-Initialize PCAN").OnEvent("Click", PCANReinitialize)
+
+MyGui.Add("Text","x290 y420", "Choose Anchor Board")
+AnchorBoardAccess := MyGui.AddDropDownList("W160", AnchorBoardArrayID)
+AnchorBoardAccess.OnEvent("Change", UseAnchorBoardID)
+
+
+
+;----------------------------------------------------------------
+
+;For Orientation
+Tab.UseTab("Orientation")
+MyGui.Add("Button","x1000 y630","Restart TestUtility").OnEvent("Click", RestartTestUtil)
+
+MyGui.Add("GroupBox","x18 y35 W255 H150")
+
+;Selecting communication option for Orientation
+MyGui.Add("Text","x26 y39","Select Communication Choice")
+OrientationComChoice := MyGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM",])
+OrientationComChoice.Choose("PCAN")
+MyGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
+
+;Manually choose com port number
+MyGui.Add("Text",, "Select COM Port Number")
+OrientationCOMPort := MyGui.AddDropDownList("W75", Words)
+
+
+RefreshOrientation := MyGui.Add("Button","x121 y145", "Refresh")
+RefreshOrientation.OnEvent("Click", RefreshBtn)
+
+
+
+MyGui.Add("Text", " x26 y600", "Manual input for TestUtil")
+OrientationInput := MyGui.Add("Edit", "")
+OrientationInput.SetFont("cBlack")
+
+OrientationInput.OnEvent("Focus", OrientationManBTNFocus)
+OrientationInput.OnEvent("LoseFocus", OrientationManBTNUnFocus)
+
+OrientationManInput := MyGui.Add("Button","x180 y620","Submit")
+OrientationManInput.OnEvent("Click", OrientationInputValueEnter)
+
+
+MyGui.Add("GroupBox", "x280 y35 H235 W350")
+
+MyGui.Add("Text","x290 y39", "FW Selected for Installing")
+OrientationFW := MyGui.Add("Edit", "ReadOnly")
+OrientationFW.SetFont("cBlack")
+
+fileOrientationContents := FileRead("hexFiles_ORI\ORI_leinApp_bl.hex")
+OrientationFolder := ("Orientation FW\*.hex")
+
+Loop Files OrientationFolder, "F"
+    {
+        FilePathOrientation := A_LoopFileFullPath
+        CurrentFileOrientation := FileRead(FilePathOrientation)
+
+if (fileOrientationContents == CurrentFileOrientation) 
+    {      
+    FWOrientationFile := A_LoopFileName
+        OrientationFW.Text := FWOrientationFile
+
+    break
+    }
+    }
+
+CheckFWLoopOrientation(*){
+Loop Files OrientationFolder, "F"
+    {
+        fileOrientationContents := FileRead("hexFiles_ORI\ORI_leinApp_bl.hex")
+        FilePathOrientation := A_LoopFileFullPath
+
+        CurrentFileOrientation := FileRead(FilePathOrientation)
+if (fileOrientationContents == CurrentFileOrientation) 
+    {
+    FWOrientationFile := A_LoopFileName
+        OrientationFW.Text := FWOrientationFile
+        FWOrientationFile := ""
+        CurrentFileOrientation := ""
+    break
+    }
+    }
+}
+
+
+OrientationArrayID := ["0x2B"]
+
+;Browse for FW for Orientation Node
+MyGui.Add("Text","", "Select Firmware Version")
+MyGui.Add("Button",, "Browse").OnEvent("Click", OpenFiledialogOrientation)
+
+MyGui.Add("Text",, "Choose an Orientation Node if more than one connected")
+ChooseOrientationFWIns := MyGui.AddDropDownList("W160", OrientationArrayID)
+
+;Install FW to Orientation Node
+MyGui.Add("Text",, "Install Firmware to Orientation Node")
+
+MyGui.Add("Button",, "Install").OnEvent("Click", InstallFWOrientation)
+
+
+MyGui.Add("GroupBox","x280 y300 H180 W240")
+
+;Access Orientation NOde
+MyGui.Add("Text","x290 y300", "Go to Access Orientation Node Menu")
+MyGui.Add("Button", "" ,"Go To Menu").OnEvent("Click", OrientationMenu)
+
+;Rescan of Orientation Nodes CAN IDs
+MyGui.Add("Text","", "Rescan Nodes If Necessecary")
+MyGui.Add("Button",, "Rescan").OnEvent("Click", PingNodes)
+
+MyGui.Add("Button","x370 y381", "Re-Initialize PCAN").OnEvent("Click", PCANReinitialize)
+
+MyGui.Add("Text","x290 y420", "Choose Orientation")
+OrientationAccess := MyGui.AddDropDownList("W160", OrientationArrayID)
+OrientationAccess.OnEvent("Change", UseOrientationID)
 
 ;----------------------------------------------------------------
 
@@ -822,6 +1175,8 @@ SolManBTNFocus(*){
 SolManBTNUnFocus(*){
     SolManInput.Opt("-Default")
 }
+
+
 
 
 CheckProgram(*){
@@ -873,19 +1228,19 @@ RestartTestUtil(*){
     SolenoidAccess.Choose 0
     SolenoidUse.Choose 0
     SensorType.Choose 0
-    SolenoidSensors.Choose 0
+    SolenoidSensorsDropDownList.Choose 0
     ;TCComChoice.Choose 0
     TCCOMPort.Choose 0
     ChooseTCFWIns.Choose 0
     TCAccess.Choose 0
     TCUsage.Choose 0
-    OneWireCOMPort.Choose 0
+    OneWireMasterCOMPort.Choose 0
     RSSCOMPort.Choose 0
     RSSAccess.Choose 0
 
     WinMove(0,0,,, "ahk_exe tkToolUtility.exe")
     Sleep 200
-    WinActivate ("V2.3 TestUtilityGUI For Use With TestUtilityV40")
+    WinActivate ("V2.2 TestUtilityGUI For Use With TestUtilityV40")
     ControlSend  "{Enter}", , "tkToolUtility.exe"
     SetTimer CheckProgram, 500
 }
@@ -909,7 +1264,7 @@ InstallSolenoidEz(*){
     Sleep 500
     WinMove(0,0,,, "ahk_exe tkToolUtility.exe")
     Sleep 500
-    WinActivate ("V2.3 TestUtilityGUI For Use With TestUtilityV40") 
+    WinActivate ("V2.2 TestUtilityGUI For Use With TestUtilityV40") 
     ControlSend  "{Enter}", , "tkToolUtility.exe"
 }
 
@@ -998,6 +1353,24 @@ RBBtnFocus(*){
 RBBtnUnFocus(*){
     RBBtn.Opt("-Default")
 }
+
+QTManBTNFocus(*){
+    QTManInput.Opt("+Default")
+}
+
+QTManBTNUnFocus(*){
+    QTManInput.Opt("-Default")
+}
+
+
+QTInputValueEnter(*){
+    ControlSend QTInput.Value ,, "tkToolUtility.exe"
+    Sleep 100
+    ControlSend "{Enter}" ,, "tkToolUtility.exe"
+    Sleep 100
+    QTInput.Value := ""
+}
+
 
 EnterToSaveQT(*){
     BoardSave := BoardChoice.Text
@@ -1559,6 +1932,16 @@ SolenoidUsage(*){
 
 }
 
+SolenoidSensorTypesStroker(*){
+    SolenoidSensorsDropDownList.Delete()
+    SolenoidSensorsDropDownList.Add(CompactStrokerDropDownListArray)
+}
+
+SolenoidSensorTypes(*){
+    SolenoidSensorsDropDownList.Delete()
+    SolenoidSensorsDropDownList.Add(TheRestDropDownListArray)
+}
+
 SensorTypeChange(*){
     Hex0x8F()
     Sleep 200
@@ -1603,7 +1986,7 @@ SolInputValueEnter(*){
 SensorIDs(*){
     Hex0xFA()
     Sleep 200
-    SelectedSensorIDs := SolenoidSensors.Text
+    SelectedSensorIDs := SolenoidSensorsDropDownList.Text
     switch SelectedSensorIDs {
         case "DDP3 '9a' Linear":
             Keystroke1()
@@ -1632,25 +2015,60 @@ SensorIDs(*){
             ;Keystroke7()
             MsgBox "Not in use currently"
 
+        Case "DDP3 'P-Sa' Linear":
+            Keystroke1()
+            Sleep 100
+            Keystroke1()
+        Case "DDP3 'P-Sb' Linear":
+            Keystroke2()
+            Sleep 100
+            Keystroke1()
+        Case "DDP3 'P-LF' Linear":
+            Keystroke3()
+            Sleep 100
+            Keystroke1()
+        Case "DDP500 'P-Comp' Linear":
+            Keystroke4()
+            Sleep 100
+            Keystroke1()
+        Case "DDP3 'P-TW' Linear":
+            Keystroke5()
+            Sleep 100
+            Keystroke1()
+        Case "AncUpper 'P-Ga' Quad":
+            Keystroke6()
+            Sleep 100
+            Keystroke2()
+        Case "AncLower 'P-Gb' Quad":
+            Keystroke7()
+            Sleep 100
+            Keystroke2()
+
 }
 }
 
 UpdateSensorValues(*){
     
-    SelectedSensors := SolenoidSensors.Text
+    SelectedSensors := SolenoidSensorsDropDownList.Text
     switch SelectedSensors {
         case "DDP3 '9a' Linear":
-            ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  Sensorb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Enter}", , "tkToolUtility.exe"
-            Sleep 300
-            Hex0xCD()
-            Sleep 100
-            ControlSend  "{y}", , "tkToolUtility.exe"
+            if (Sensorm.Value != "" && Sensorb.Value != "")
+            {
+                ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
+                Sleep 100
+                ControlSend  "{Space}", , "tkToolUtility.exe"
+                ControlSend  Sensorb.Value ,, "tkToolUtility.exe"
+                Sleep 100
+                ControlSend  "{Enter}", , "tkToolUtility.exe"
+                Sleep 300
+                Hex0xCD()
+                Sleep 100
+                ControlSend  "{y}", , "tkToolUtility.exe"
+            }
+            
         case "DDP3 '9b' Linear":
+        if (Sensorm.Value != "" && Sensorb.Value != "")
+        {
             ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
             Sleep 100
             ControlSend  "{Space}", , "tkToolUtility.exe"
@@ -1661,7 +2079,11 @@ UpdateSensorValues(*){
             Hex0xCD()
             Sleep 100
             ControlSend  "{y}", , "tkToolUtility.exe"
+        }
+       
         case "Comp '10' Linear":
+        if (Sensorm.Value != "" && Sensorb.Value != "")
+            {
             ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
             Sleep 100
             ControlSend  "{Space}", , "tkToolUtility.exe"
@@ -1672,7 +2094,10 @@ UpdateSensorValues(*){
             Hex0xCD()
             Sleep 100
             ControlSend  "{y}", , "tkToolUtility.exe"
+        }
         Case "AncUpper '13a' Quad":
+        if (SensorCb.Value != "" && SensorCm.Value != "" && SensorBb.Value != "" && SensorBm.Value != "" && SensorAb.Value != "" && SensorAm.Value != "")
+        {
             ControlSend  SensorCb.Value ,, "tkToolUtility.exe"
             Sleep 100
             ControlSend  "{Space}", , "tkToolUtility.exe"
@@ -1695,7 +2120,11 @@ UpdateSensorValues(*){
             Hex0xCD()
             Sleep 100
             ControlSend  "{y}", , "tkToolUtility.exe"
+        }
+
         Case "AncLower '13b' Quad":
+        if (SensorCb.Value != "" && SensorCm.Value != "" && SensorBb.Value != "" && SensorBm.Value != "" && SensorAb.Value != "" && SensorAm.Value != "")
+        {
             ControlSend  SensorCb.Value ,, "tkToolUtility.exe"
             Sleep 100
             ControlSend  "{Space}", , "tkToolUtility.exe"
@@ -1718,10 +2147,141 @@ UpdateSensorValues(*){
             Hex0xCD()
             Sleep 100
             ControlSend  "{y}", , "tkToolUtility.exe"
+        }
+
         Case "Sensor6 'Not in Use'":
-            MsgBox "Not in use currently"
+            MsgBox "Not in use for the rest, Choose the other options above for compactstroker"
         Case "Sensor7 'Not in Use'":
-            MsgBox "Not in use currently"
+            MsgBox "Not in use for the rest, Choose the other options above for compactstroker"
+
+        Case "DDP3 'P-Sa' Linear":
+        if (Sensorm.Value != "" && Sensorb.Value != "")
+        {
+            ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Space}", , "tkToolUtility.exe"
+            ControlSend  Sensorb.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 300
+            Hex0xCD()
+            Sleep 100
+            ControlSend  "{y}", , "tkToolUtility.exe"
+        }
+
+        Case "DDP3 'P-Sb' Linear":
+        if (Sensorm.Value != "" && Sensorb.Value != "")
+        {
+            ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Space}", , "tkToolUtility.exe"
+            ControlSend  Sensorb.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 300
+            Hex0xCD()
+            Sleep 100
+            ControlSend  "{y}", , "tkToolUtility.exe"
+        }
+
+        Case "DDP3 'P-LF' Linear":
+        if (Sensorm.Value != "" && Sensorb.Value != "")
+        {
+            ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Space}", , "tkToolUtility.exe"
+            ControlSend  Sensorb.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 300
+            Hex0xCD()
+            Sleep 100
+            ControlSend  "{y}", , "tkToolUtility.exe"
+        }
+
+        Case "DDP500 'P-Comp' Linear":
+        if (Sensorm.Value != "" && Sensorb.Value != "")
+        {
+            ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Space}", , "tkToolUtility.exe"
+            ControlSend  Sensorb.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 300
+            Hex0xCD()
+            Sleep 100
+            ControlSend  "{y}", , "tkToolUtility.exe"
+        }
+
+        Case "DDP3 'P-TW' Linear":
+        if (Sensorm.Value != "" && Sensorb.Value != "")
+        {
+            ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Space}", , "tkToolUtility.exe"
+            ControlSend  Sensorb.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 300
+            Hex0xCD()
+            Sleep 100
+            ControlSend  "{y}", , "tkToolUtility.exe"
+        }
+
+        Case "AncUpper 'P-Ga' Quad":
+        if (SensorCb.Value != "" && SensorCm.Value != "" && SensorBb.Value != "" && SensorBm.Value != "" && SensorAb.Value != "" && SensorAm.Value != "")
+        {
+            ControlSend  SensorCb.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Space}", , "tkToolUtility.exe"
+            ControlSend  SensorCm.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Space}", , "tkToolUtility.exe"
+            ControlSend  SensorBb.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Space}", , "tkToolUtility.exe"
+            ControlSend  SensorBm.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Space}", , "tkToolUtility.exe"
+            ControlSend  SensorAb.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Space}", , "tkToolUtility.exe"
+            ControlSend  SensorAm.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 300
+            Hex0xCD()
+            Sleep 100
+            ControlSend  "{y}", , "tkToolUtility.exe"
+        }
+
+        Case "AncLower 'P-Gb' Quad":
+        if (SensorCb.Value != "" && SensorCm.Value != "" && SensorBb.Value != "" && SensorBm.Value != "" && SensorAb.Value != "" && SensorAm.Value != "")
+        {
+            ControlSend  SensorCb.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Space}", , "tkToolUtility.exe"
+            ControlSend  SensorCm.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Space}", , "tkToolUtility.exe"
+            ControlSend  SensorBb.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Space}", , "tkToolUtility.exe"
+            ControlSend  SensorBm.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Space}", , "tkToolUtility.exe"
+            ControlSend  SensorAb.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Space}", , "tkToolUtility.exe"
+            ControlSend  SensorAm.Value ,, "tkToolUtility.exe"
+            Sleep 100
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 300
+            Hex0xCD()
+            Sleep 100
+            ControlSend  "{y}", , "tkToolUtility.exe"
+        }
 
 }
 Sleep 500
@@ -1835,6 +2395,25 @@ OpenFiledialogTC(*){
 }
 
 
+TCManBTNFocus(*){
+    TCManInput.Opt("+Default")
+}
+
+TCManBTNUnFocus(*){
+    TCManInput.Opt("-Default")
+}
+
+
+TCInputValueEnter(*){
+    ControlSend TCInput.Value ,, "tkToolUtility.exe"
+    Sleep 100
+    ControlSend "{Enter}" ,, "tkToolUtility.exe"
+    Sleep 100
+    TCInput.Value := ""
+}
+
+
+
 
 InstallFWTC(*){
     SelectedTCCom := TCComChoice.Text
@@ -1858,21 +2437,25 @@ InstallFWTC(*){
             Keystroke0()
             InsSID()
             Case "Lower PR STR - 0x31" :
+            ControlSend "{y}",, "tkToolUtility.exe"
             Hex0x3()
             Sleep 100
             Keystroke1()
             InsSID()
             Case "Upper TC - 0x32" :
+            ControlSend "{y}",, "tkToolUtility.exe"
             Hex0x3()
             Sleep 100
             Keystroke2()
             InsSID()
             Case "Lower TC - 0x33" :
+            ControlSend "{y}",, "tkToolUtility.exe"
             Hex0x3()
             Sleep 100
             Keystroke3()
             InsSID()
             Case "DDR TC SJR - 0x34" :
+            ControlSend "{y}",, "tkToolUtility.exe"
             Hex0x3()
             Sleep 100
             Keystroke4()
@@ -1906,21 +2489,25 @@ InstallFWTC(*){
             Keystroke0()
             InsSID()
             Case "Lower PR STR - 0x31" :
+            ControlSend "{y}",, "tkToolUtility.exe"
             Hex0x3()
             Sleep 100
             Keystroke1()
             InsSID()
             Case "Upper TC - 0x32" :
+            ControlSend "{y}",, "tkToolUtility.exe"
             Hex0x3()
             Sleep 100
             Keystroke2()
             InsSID()
             Case "Lower TC - 0x33" :
+            ControlSend "{y}",, "tkToolUtility.exe"
             Hex0x3()
             Sleep 100
             Keystroke3()
             InsSID()
             Case "DDR TC SJR - 0x34" :
+            ControlSend "{y}",, "tkToolUtility.exe"
             Hex0x3()
             Sleep 100
             Keystroke4()
@@ -2133,7 +2720,7 @@ if (SelectedOneWireMasterFWFile != "")
 }
 
 InstallFWOneWireMaster(*){
-    SelectedOneWireMasterCom := OneWireComChoice.Text
+    SelectedOneWireMasterCom := OneWireMasterComChoice.Text
     switch SelectedOneWireMasterCom {
         case "PCAN":
         Keystroke4()
@@ -2159,7 +2746,7 @@ InstallFWOneWireMaster(*){
         Sleep 100 
         Keystroke3()
         Sleep 200
-        ControlSend  OneWireCOMPort.Text ,, "tkToolUtility.exe"
+        ControlSend  OneWireMasterCOMPort.Text ,, "tkToolUtility.exe"
         Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
         Sleep 200
@@ -2181,11 +2768,30 @@ OneWireMasterBtnUnFocus(*){
     OneWireMasterIdBtn.Opt("-Default")
 }
 
+OneWireMasterManBTNFocus(*){
+    OneWireMasterManInput.Opt("+Default")
+}
+
+OneWireMasterManBTNUnFocus(*){
+    OneWireMasterManInput.Opt("-Default")
+}
+
+
+OneWireMasterInputValueEnter(*){
+    ControlSend OneWireMasterInput.Value ,, "tkToolUtility.exe"
+    Sleep 100
+    ControlSend "{Enter}" ,, "tkToolUtility.exe"
+    Sleep 100
+    OneWireMasterInput.Value := ""
+}
+
+
+
 
 UpdateOneWireMasterIDs(*){
 
     if (OneWireMasterAltusID.Value != "" && OneWireMasterToolID.Value == ""){
-        Hex0x8A()
+        Hex0x88()
         Sleep 400
         ControlSend  OneWireMasterAltusID.Value ,, "tkToolUtility.exe"
         Sleep 200
@@ -2193,7 +2799,7 @@ UpdateOneWireMasterIDs(*){
         Sleep 400
         OneWireMasterAltusID.Value := ""
         Sleep 300
-        Hex0xCB()
+        Hex0x9B()
         ControlSend  "{y}", , "tkToolUtility.exe"
 }
     else if OneWireMasterToolID.Value != "" && OneWireMasterAltusID.Value == ""{
@@ -2205,11 +2811,11 @@ UpdateOneWireMasterIDs(*){
         Sleep 400
         OneWireMasterToolID.Value := ""
         Sleep 300
-        Hex0xCB()
+        Hex0x9B()
         ControlSend  "{y}", , "tkToolUtility.exe"
 }
     else if OneWireMasterAltusID.Value != "" && OneWireMasterToolID.Value != ""{
-        Hex0x8A()
+        Hex0x88()
         Sleep 200
         ControlSend  OneWireMasterAltusID.Value,, "tkToolUtility.exe"
         Sleep 200
@@ -2225,13 +2831,149 @@ UpdateOneWireMasterIDs(*){
         Sleep 400
         OneWireMasterToolID.Value := ""
         Sleep 300
-        Hex0xCB()
+        Hex0x9B()
         ControlSend  "{y}", , "tkToolUtility.exe"
     }
     else{
         return
     }
 }
+
+OneWireMasterMenu(*){
+    Keystroke4()
+    Sleep 200
+    SelectedOneWireMasterOption := OneWireMasterComChoice.Text
+    switch SelectedOneWireMasterOption {
+        case "PCAN":
+            Keystroke1()
+            Sleep 200
+            Keystroke1()
+        case "QPSK/MasterBox":
+            Keystroke2()
+            Sleep 200
+            Keystroke1()
+            ControlSend  OneWireMasterCOMPort.Text ,, "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+        case "OFDM":
+            Keystroke3()
+            Sleep 200
+            Keystroke3()
+    }
+}
+
+UseOneWireMasterID(*){
+    Keystroke4()
+    Sleep 200
+    SelectOneWireMaster := OneWireMasterAccess.Text
+    Switch SelectOneWireMaster{
+        Case "One Wire Master - 0x3A" :
+        Hex0x3A()
+        Sleep 100
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+    }
+}
+
+
+
+
+RSSManBTNFocus(*){
+    RSSManInput.Opt("+Default")
+}
+
+RSSManBTNUnFocus(*){
+    RSSManInput.Opt("-Default")
+}
+
+
+RSSInputValueEnter(*){
+    ControlSend RSSInput.Value ,, "tkToolUtility.exe"
+    Sleep 100
+    ControlSend "{Enter}" ,, "tkToolUtility.exe"
+    Sleep 100
+    RSSInput.Value := ""
+}
+
+
+
+
+OpenFiledialogRSS(*){
+    SelectedRSSFWFile := FileSelect(1,,"Select Firmware","Firmware (*.hex)")
+    if (SelectedRSSFWFile != "")
+    {
+        destinationRSSDir := A_ScriptDir . "\\hexFiles_RSS\\"
+        newName := "RSS_leinApp_bl.hex"
+    
+        destinationRSSFile := destinationRSSDir . newName
+    
+        FileCopy(SelectedRSSFWFile, destinationRSSFile, 1)
+    
+        if (FileExist(destinationRSSFile))
+            {
+            
+                Sleep 1000
+                CheckFWLoopRSS()
+    
+            }
+    
+    }
+    }
+    
+    InstallFWRSS(*){
+        SelectedRSSCom := RSSComChoice.Text
+        switch SelectedRSSCom {
+            case "PCAN":
+            Keystroke5()
+            Sleep 100 
+            Keystroke1()
+            Sleep 100 
+            Keystroke3()
+            Sleep 100 
+            ChooseRSS := ChooseRSSFWIns.Text
+            Switch ChooseRSS{
+                Case "":
+                ControlSend "{N}",, "tkToolUtility.exe"
+                InsSID()
+                Case "Upper RSS - 0x1A" :
+                ControlSend "{y}",, "tkToolUtility.exe"
+                Hex0x1A()
+                Sleep 100
+                InsSID()
+                Case "Lower RSS - 0x1B" :
+                ControlSend "{y}",, "tkToolUtility.exe"
+                Hex0x1B()
+                Sleep 100
+                InsSID()
+            }
+    
+            ReopenAfterIns()
+    
+            case "QPSK/MasterBox":
+            Keystroke5()
+            Sleep 100
+            Keystroke2()
+            Sleep 100 
+            Keystroke3()
+            Sleep 200
+            ControlSend  RSSCOMPort.Text ,, "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 100 
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 100 
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 100 
+    
+            ReopenAfterIns()
+    
+            case "OFDM":
+                Keystroke4()
+        }
+    }
 
 
 RSSMenu(*){
@@ -2273,6 +3015,285 @@ UseRSSID(*){
         Hex0x1B()
         Sleep 100
         
+
+    }
+}
+
+
+
+
+AnchorBoardManBTNFocus(*){
+    AnchorBoardManInput.Opt("+Default")
+}
+
+AnchorBoardManBTNUnFocus(*){
+    AnchorBoardManInput.Opt("-Default")
+}
+
+
+AnchorBoardInputValueEnter(*){
+    ControlSend AnchorBoardInput.Value ,, "tkToolUtility.exe"
+    Sleep 100
+    ControlSend "{Enter}" ,, "tkToolUtility.exe"
+    Sleep 100
+    AnchorBoardInput.Value := ""
+}
+
+
+OpenFiledialogAnchorBoard(*){
+    SelectedAnchorBoardFWFile := FileSelect(1,,"Select Firmware","Firmware (*.hex)")
+    if (SelectedAnchorBoardFWFile != "")
+    {
+        destinationAnchorBoardDir := A_ScriptDir . "\\hexFiles_ANC\\"
+        newName := "ANC_leinApp_bl.hex"
+    
+        destinationAnchorBoardFile := destinationAnchorBoardDir . newName
+    
+        FileCopy(SelectedAnchorBoardFWFile, destinationAnchorBoardFile, 1)
+    
+        if (FileExist(destinationAnchorBoardFile))
+            {
+            
+                Sleep 1000
+                CheckFWLoopAnchorBoard()
+    
+            }
+    
+    }
+    }
+    
+    InstallFWAnchorBoard(*){
+        SelectedAnchorBoardCom := AnchorBoardComChoice.Text
+        switch SelectedAnchorBoardCom {
+            case "PCAN":
+            Keystroke6()
+            Sleep 100 
+            Keystroke1()
+            Sleep 100 
+            Keystroke3()
+            Sleep 100 
+            ChooseAnchorBoard := ChooseAnchorBoardFWIns.Text
+            Switch ChooseAnchorBoard{
+                Case "":
+                ControlSend "{N}",, "tkToolUtility.exe"
+                InsSID()
+                Case "0x3C" :
+                ControlSend "{y}",, "tkToolUtility.exe"
+                Hex0x3C()
+                Sleep 100
+                InsSID()
+                Case "0x3D" :
+                ControlSend "{y}",, "tkToolUtility.exe"
+                Hex0x3D()
+                Sleep 100
+                InsSID()
+                Case "0x3E" :
+                ControlSend "{y}",, "tkToolUtility.exe"
+                Hex0x3E()
+                Sleep 100
+                InsSID()
+            }
+    
+            ReopenAfterIns()
+    
+            case "QPSK/MasterBox":
+            Keystroke6()
+            Sleep 100
+            Keystroke2()
+            Sleep 100 
+            Keystroke3()
+            Sleep 200
+            ControlSend  AnchorBoardCOMPort.Text ,, "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 100 
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 100 
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 100 
+    
+            ReopenAfterIns()
+    
+            case "OFDM":
+                Keystroke4()
+        }
+    }
+
+
+AnchorBoardMenu(*){
+    Keystroke6()
+    Sleep 200
+    SelectedAnchorBoardOption := AnchorBoardComChoice.Text
+    switch SelectedAnchorBoardOption {
+        case "PCAN":
+            Keystroke1()
+            Sleep 200
+            Keystroke1()
+        case "QPSK/MasterBox":
+            Keystroke2()
+            Sleep 200
+            Keystroke1()
+            ControlSend  AnchorBoardCOMPort.Text ,, "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+        case "OFDM":
+            Keystroke3()
+            Sleep 200
+            Keystroke3()
+    }
+}
+
+UseAnchorBoardID(*){
+    Keystroke4()
+    Sleep 200
+    SelectAnchorBoard := AnchorBoardAccess.Text
+    Switch SelectAnchorBoard{
+        Case "0x3C" :
+        Hex0x3C()
+        Sleep 100
+        
+        Case "0x3D" :
+        Hex0x3D()
+        Sleep 100
+
+        Case "0x3E" :
+        Hex0x3E()
+        Sleep 100
+
+    }
+}
+
+
+
+
+OrientationManBTNFocus(*){
+    OrientationManInput.Opt("+Default")
+}
+
+OrientationManBTNUnFocus(*){
+    OrientationManInput.Opt("-Default")
+}
+
+
+OrientationInputValueEnter(*){
+    ControlSend OrientationInput.Value ,, "tkToolUtility.exe"
+    Sleep 100
+    ControlSend "{Enter}" ,, "tkToolUtility.exe"
+    Sleep 100
+    OrientationInput.Value := ""
+}
+
+
+OpenFiledialogOrientation(*){
+    SelectedOrientationFWFile := FileSelect(1,,"Select Firmware","Firmware (*.hex)")
+    if (SelectedOrientationFWFile != "")
+    {
+        destinationOrientationDir := A_ScriptDir . "\\hexFiles_ORI\\"
+        newName := "ORI_leinApp_bl.hex"
+    
+        destinationOrientationFile := destinationOrientationDir . newName
+    
+        FileCopy(SelectedOrientationFWFile, destinationOrientationFile, 1)
+    
+        if (FileExist(destinationOrientationFile))
+            {
+            
+                Sleep 1000
+                CheckFWLoopOrientation()
+    
+            }
+    
+    }
+    }
+    
+    InstallFWOrientation(*){
+        SelectedOrientationCom := OrientationComChoice.Text
+        switch SelectedOrientationCom {
+            case "PCAN":
+            Keystroke7()
+            Sleep 100 
+            Keystroke1()
+            Sleep 100 
+            Keystroke3()
+            Sleep 100 
+            ChooseOrientation := ChooseOrientationFWIns.Text
+            Switch ChooseOrientation{
+                Case "":
+                ControlSend "{N}",, "tkToolUtility.exe"
+                InsSID()
+                Case "0x2B" :
+                ControlSend "{y}",, "tkToolUtility.exe"
+                Hex0x2B()
+                Sleep 100
+                InsSID()
+            }
+    
+            ReopenAfterIns()
+    
+            case "QPSK/MasterBox":
+            Keystroke7()
+            Sleep 100
+            Keystroke2()
+            Sleep 100 
+            Keystroke3()
+            Sleep 200
+            ControlSend  OrientationCOMPort.Text ,, "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 100 
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 100 
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 100 
+    
+            ReopenAfterIns()
+    
+            case "OFDM":
+                Keystroke4()
+        }
+    }
+
+
+OrientationMenu(*){
+    Keystroke7()
+    Sleep 200
+    SelectedOrientationOption := OrientationComChoice.Text
+    switch SelectedOrientationOption {
+        case "PCAN":
+            Keystroke1()
+            Sleep 200
+            Keystroke1()
+        case "QPSK/MasterBox":
+            Keystroke2()
+            Sleep 200
+            Keystroke1()
+            ControlSend  OrientationCOMPort.Text ,, "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+        case "OFDM":
+            Keystroke3()
+            Sleep 200
+            Keystroke3()
+    }
+}
+
+
+UseOrientationID(*){
+    Keystroke4()
+    Sleep 200
+    SelectOrientation := OrientationAccess.Text
+    Switch SelectOrientation{
+        Case "0x2B" :
+        Hex0x2B()
+        Sleep 100  
 
     }
 }
@@ -2449,6 +3470,22 @@ Hex0x8C(*){
     ControlSend  "{Enter}", , "tkToolUtility.exe"
 }
 
+Hex0x88(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{8}",, "tkToolUtility.exe"
+    ControlSend "{8}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+
+Hex0x9B(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{9}",, "tkToolUtility.exe"
+    ControlSend "{B}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+
 Hex0x3(*){
     ControlSend "{0}",, "tkToolUtility.exe"
     ControlSend "{x}",, "tkToolUtility.exe"
@@ -2471,12 +3508,44 @@ Hex0x1B(*){
     ControlSend  "{Enter}", , "tkToolUtility.exe"
 }
 
+Hex0x2B(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{2}",, "tkToolUtility.exe"
+    ControlSend "{B}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+
 
 Hex0x3A(*){
     ControlSend "{0}",, "tkToolUtility.exe"
     ControlSend "{x}",, "tkToolUtility.exe"
     ControlSend "{3}",, "tkToolUtility.exe"
     ControlSend "{A}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+
+Hex0x3C(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{3}",, "tkToolUtility.exe"
+    ControlSend "{C}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+
+Hex0x3D(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{3}",, "tkToolUtility.exe"
+    ControlSend "{D}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+
+Hex0x3E(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{3}",, "tkToolUtility.exe"
+    ControlSend "{E}",, "tkToolUtility.exe"
     ControlSend  "{Enter}", , "tkToolUtility.exe"
 }
 
