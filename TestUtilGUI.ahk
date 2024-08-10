@@ -5,7 +5,7 @@ SetWorkingDir(A_ScriptDir)
 iconPath := A_ScriptDir . "\\icoFiles\\toolsICO.ico"
 TraySetIcon (iconPath)
 
-MyGui := Gui(, "V2.2 TestUtilityGUI For Use With TestUtilityV40")
+MyGui := Gui(, "V2.4 TestUtilityGUI For Use With TestUtilityV40")
 
 SetDarkWindowFrame(MyGui)
 MyGui.Setfont("s10 cWhite")
@@ -121,7 +121,7 @@ CheckFile(*){
         SolDisplay.Value := SolTestContents
         ;MsgBox "ts"
         ;Sleep 50
-        SendMessage(0x0115, 7, 0, "Edit5", "V2.2 TestUtilityGUI For Use With TestUtilityV40")
+        SendMessage(0x0115, 7, 0, "Edit5", "4")
         
     }
     ;else{
@@ -914,6 +914,40 @@ MyGui.Add("Text","x290 y420", "Choose RSS")
 RSSAccess := MyGui.AddDropDownList("W160", ["Upper RSS - 0x1A","Lower RSS - 0x1B"])
 RSSAccess.OnEvent("Change", UseRSSID)
 
+
+MyGui.Add("GroupBox","x600 y35 W190 H125")
+
+MyGui.Add("Text","x610 y39", "Change RSS Node Usage")
+RSSUsage := MyGui.AddDropDownList("W160",["Upper RSS - 0x1A","Lower RSS - 0x1B"])
+RSSUsage.OnEvent("Change", ChangeRSSID)
+
+MyGui.Add("Text","" , "Check Current Settings")
+MyGui.Add("Button",,"Check").OnEvent("Click", CheckCal)
+
+MyGui.Add("GroupBox","x800 y35 W325 H130")
+
+;Text for IDs
+MyGui.Add("Text","x810 y60", "Update Altus/Board ID")
+MyGui.Add("Text",, "Update Tool ID")
+
+;Input edit box for IDs
+MyGui.Add("Text","x960 y39","Input IDs")
+RSSAltusID := MyGui.Add("Edit","x960 y60")
+RSSToolID := MyGui.Add("Edit")
+
+RSSAltusID.SetFont("cBlack")
+RSSToolID.SetFont("cBlack")
+
+RSSIdBtn := MyGui.Add("Button",, "Update IDs")
+RSSIdBtn.OnEvent("Click", UpdateRSSIDs)
+
+RSSAltusID.OnEvent("Focus", RSSBtnFocus)
+RSSAltusID.OnEvent("LoseFocus", RSSBtnUnFocus)
+
+RSSToolID.OnEvent("Focus", RSSBtnFocus)
+RSSToolID.OnEvent("LoseFocus", RSSBtnUnFocus)
+
+
 ;----------------------------------------------------------------
 
 ;For Anchor Board
@@ -990,7 +1024,7 @@ if (fileAnchorBoardContents == CurrentFileAnchorBoard)
     }
 }
 
-AnchorBoardArrayID := ["0x3C", "0x3D", "0x3E"]
+AnchorBoardArrayID := ["sStrV2 - 0x3C", "Puncher - 0x3D", "HVCO - 0x3E"]
 
 
 ;Browse for FW for Anchor Board Node
@@ -1022,6 +1056,38 @@ MyGui.Add("Text","x290 y420", "Choose Anchor Board")
 AnchorBoardAccess := MyGui.AddDropDownList("W160", AnchorBoardArrayID)
 AnchorBoardAccess.OnEvent("Change", UseAnchorBoardID)
 
+
+MyGui.Add("GroupBox","x660 y35 W200 H125")
+
+MyGui.Add("Text","x670 y39", "Change Anchor Board Usage")
+AnchorBoardUsage := MyGui.AddDropDownList("W160", AnchorBoardArrayID)
+AnchorBoardUsage.OnEvent("Change", ChangeAnchorBoardID)
+
+MyGui.Add("Text","" , "Check Current Settings")
+MyGui.Add("Button",,"Check").OnEvent("Click", CheckCal)
+
+MyGui.Add("GroupBox","x870 y35 W325 H130")
+
+;Text for IDs
+MyGui.Add("Text","x880 y60", "Update Altus/Board ID")
+MyGui.Add("Text",, "Update Tool ID")
+
+;Input edit box for IDs
+MyGui.Add("Text","x1030 y39","Input IDs")
+AnchorBoardAltusID := MyGui.Add("Edit","x1030 y60")
+AnchorBoardToolID := MyGui.Add("Edit")
+
+AnchorBoardAltusID.SetFont("cBlack")
+AnchorBoardToolID.SetFont("cBlack")
+
+AnchorBoardIdBtn := MyGui.Add("Button",, "Update IDs")
+AnchorBoardIdBtn.OnEvent("Click", UpdateAnchorBoardIDs)
+
+AnchorBoardAltusID.OnEvent("Focus", AnchorBoardBtnFocus)
+AnchorBoardAltusID.OnEvent("LoseFocus", AnchorBoardBtnUnFocus)
+
+AnchorBoardToolID.OnEvent("Focus", AnchorBoardBtnFocus)
+AnchorBoardToolID.OnEvent("LoseFocus", AnchorBoardBtnUnFocus)
 
 
 ;----------------------------------------------------------------
@@ -1132,6 +1198,31 @@ MyGui.Add("Text","x290 y420", "Choose Orientation")
 OrientationAccess := MyGui.AddDropDownList("W160", OrientationArrayID)
 OrientationAccess.OnEvent("Change", UseOrientationID)
 
+
+MyGui.Add("GroupBox","x640 y35 W325 H130")
+
+;Text for IDs
+MyGui.Add("Text","x650 y60", "Update Altus/Board ID")
+MyGui.Add("Text",, "Update Tool ID")
+
+;Input edit box for IDs
+MyGui.Add("Text","x800 y39","Input Orientation IDs")
+OrientationAltusID := MyGui.Add("Edit","x800 y60")
+OrientationToolID := MyGui.Add("Edit")
+
+OrientationAltusID.SetFont("cBlack")
+OrientationToolID.SetFont("cBlack")
+
+OrientationIdBtn := MyGui.Add("Button",, "Update IDs")
+OrientationIdBtn.OnEvent("Click", UpdateOrientationIDs)
+
+OrientationAltusID.OnEvent("Focus", OrientationBtnFocus)
+OrientationAltusID.OnEvent("LoseFocus", OrientationBtnUnFocus)
+
+OrientationToolID.OnEvent("Focus", OrientationBtnFocus)
+OrientationToolID.OnEvent("LoseFocus", OrientationBtnUnFocus)
+
+
 ;----------------------------------------------------------------
 
 ;Disable Wheel scrolling
@@ -1240,7 +1331,7 @@ RestartTestUtil(*){
 
     WinMove(0,0,,, "ahk_exe tkToolUtility.exe")
     Sleep 200
-    WinActivate ("V2.2 TestUtilityGUI For Use With TestUtilityV40")
+    WinActivate ("4")
     ControlSend  "{Enter}", , "tkToolUtility.exe"
     SetTimer CheckProgram, 500
 }
@@ -1264,7 +1355,7 @@ InstallSolenoidEz(*){
     Sleep 500
     WinMove(0,0,,, "ahk_exe tkToolUtility.exe")
     Sleep 500
-    WinActivate ("V2.2 TestUtilityGUI For Use With TestUtilityV40") 
+    WinActivate ("4") 
     ControlSend  "{Enter}", , "tkToolUtility.exe"
 }
 
@@ -3020,6 +3111,95 @@ UseRSSID(*){
 }
 
 
+ChangeRSSID(*){
+    Hex0x81()
+    Sleep 200
+    RSSChange := RSSUsage.Text
+    Switch RSSChange{
+        Case "Upper RSS - 0x1A" :
+        Hex0x1A()
+        Sleep 100
+        Hex0x87()
+        ControlSend "{1}", , "tkToolUtility.exe"
+        Sleep 100
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+
+        Case "Lower RSS - 0x1B" :
+        Hex0x1B()
+        Sleep 100
+        Hex0x87()
+        ControlSend "{2}", , "tkToolUtility.exe"
+        Sleep 100
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+
+    }
+    Sleep 100
+    Hex0xEB()
+}
+
+RSSBtnFocus(*){
+    RSSIdBtn.Opt("+Default")
+}
+
+RSSBtnUnFocus(*){
+    RSSIdBtn.Opt("-Default")
+}
+
+UpdateRSSIDs(*){
+
+    if (RSSAltusID.Value != "" && RSSToolID.Value == ""){
+        Hex0x88()
+        Sleep 400
+        ControlSend  RSSAltusID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        RSSAltusID.Value := ""
+        Sleep 300
+        Hex0xEB()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+}
+    else if RSSToolID.Value != "" && RSSAltusID.Value == ""{
+        Hex0x8A()
+        Sleep 400
+        ControlSend  RSSToolID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        RSSToolID.Value := ""
+        Sleep 300
+        Hex0xEB()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+}
+    else if RSSAltusID.Value != "" && RSSToolID.Value != ""{
+        Hex0x88()
+        Sleep 200
+        ControlSend  RSSAltusID.Value,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}",, "tkToolUtility.exe"
+        Sleep 600
+        RSSAltusID.Value := ""
+        Sleep 400
+        Hex0x8A()
+        Sleep 200
+        ControlSend  RSSToolID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        RSSToolID.Value := ""
+        Sleep 300
+        Hex0xEB()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+    }
+    else{
+        return
+    }
+}
+
+
+
+
+
 
 
 AnchorBoardManBTNFocus(*){
@@ -3077,17 +3257,17 @@ OpenFiledialogAnchorBoard(*){
                 Case "":
                 ControlSend "{N}",, "tkToolUtility.exe"
                 InsSID()
-                Case "0x3C" :
+                Case "sStrV2 - 0x3C" :
                 ControlSend "{y}",, "tkToolUtility.exe"
                 Hex0x3C()
                 Sleep 100
                 InsSID()
-                Case "0x3D" :
+                Case "Puncher - 0x3D" :
                 ControlSend "{y}",, "tkToolUtility.exe"
                 Hex0x3D()
                 Sleep 100
                 InsSID()
-                Case "0x3E" :
+                Case "HVCO - 0x3E" :
                 ControlSend "{y}",, "tkToolUtility.exe"
                 Hex0x3E()
                 Sleep 100
@@ -3152,18 +3332,106 @@ UseAnchorBoardID(*){
     Sleep 200
     SelectAnchorBoard := AnchorBoardAccess.Text
     Switch SelectAnchorBoard{
-        Case "0x3C" :
+        Case "sStrV2 - 0x3C" :
         Hex0x3C()
         Sleep 100
         
-        Case "0x3D" :
+        Case "Puncher - 0x3D" :
         Hex0x3D()
         Sleep 100
 
-        Case "0x3E" :
+        Case "HVCO - 0x3E" :
         Hex0x3E()
         Sleep 100
 
+    }
+}
+
+
+ChangeAnchorBoardID(*){
+    Hex0xFD()
+    Sleep 200
+    AnchorBoardChange := AnchorBoardUsage.Text
+    Switch AnchorBoardChange{
+        Case "sStrV2 - 0x3C" :
+        ControlSend "{1}", , "tkToolUtility.exe"
+        Sleep 100
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        ControlSend  "{y}", , "tkToolUtility.exe"
+
+        Case "Puncher - 0x3D" :
+        ControlSend "{2}", , "tkToolUtility.exe"
+        Sleep 100
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        ControlSend  "{y}", , "tkToolUtility.exe"
+
+        Case "HVCO - 0x3E" :
+        ControlSend "{4}", , "tkToolUtility.exe"
+        Sleep 100
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        ControlSend  "{y}", , "tkToolUtility.exe"
+    }
+
+    Hex0xF6()
+    ControlSend  "{y}", , "tkToolUtility.exe"
+}
+
+AnchorBoardBtnFocus(*){
+    AnchorBoardIdBtn.Opt("+Default")
+}
+
+AnchorBoardBtnUnFocus(*){
+    AnchorBoardIdBtn.Opt("-Default")
+}
+
+UpdateAnchorBoardIDs(*){
+
+    if (AnchorBoardAltusID.Value != "" && AnchorBoardToolID.Value == ""){
+        Hex0x88()
+        Sleep 400
+        ControlSend  AnchorBoardAltusID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        AnchorBoardAltusID.Value := ""
+        Sleep 300
+        Hex0xF6()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+}
+    else if AnchorBoardToolID.Value != "" && AnchorBoardAltusID.Value == ""{
+        Hex0x8A()
+        Sleep 400
+        ControlSend  AnchorBoardToolID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        AnchorBoardToolID.Value := ""
+        Sleep 300
+        Hex0xF6()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+}
+    else if AnchorBoardAltusID.Value != "" && AnchorBoardToolID.Value != ""{
+        Hex0x88()
+        Sleep 200
+        ControlSend  AnchorBoardAltusID.Value,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}",, "tkToolUtility.exe"
+        Sleep 600
+        AnchorBoardAltusID.Value := ""
+        Sleep 400
+        Hex0x8A()
+        Sleep 200
+        ControlSend  AnchorBoardToolID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        AnchorBoardToolID.Value := ""
+        Sleep 300
+        Hex0xF6()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+    }
+    else{
+        return
     }
 }
 
@@ -3299,6 +3567,67 @@ UseOrientationID(*){
 }
 
 
+OrientationBtnFocus(*){
+    OrientationIdBtn.Opt("+Default")
+}
+
+OrientationBtnUnFocus(*){
+    OrientationIdBtn.Opt("-Default")
+}
+
+UpdateOrientationIDs(*){
+
+    if (OrientationAltusID.Value != "" && OrientationToolID.Value == ""){
+        Hex0x88()
+        Sleep 400
+        ControlSend  OrientationAltusID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        OrientationAltusID.Value := ""
+        Sleep 300
+        Hex0xF6()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+}
+    else if OrientationToolID.Value != "" && OrientationAltusID.Value == ""{
+        Hex0x8A()
+        Sleep 400
+        ControlSend  OrientationToolID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        OrientationToolID.Value := ""
+        Sleep 300
+        Hex0xF6()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+}
+    else if OrientationAltusID.Value != "" && OrientationToolID.Value != ""{
+        Hex0x88()
+        Sleep 200
+        ControlSend  OrientationAltusID.Value,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}",, "tkToolUtility.exe"
+        Sleep 600
+        OrientationAltusID.Value := ""
+        Sleep 400
+        Hex0x8A()
+        Sleep 200
+        ControlSend  OrientationToolID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        OrientationToolID.Value := ""
+        Sleep 300
+        Hex0xF6()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+    }
+    else{
+        return
+    }
+}
+
+
+
 
 ButtonClick(*) {
     ; Send a keystroke to the console window
@@ -3367,29 +3696,6 @@ Keystroke9(*){
     ControlSend  "{Enter}", , "tkToolUtility.exe"
 }
 
-Hex0xF4(*){
-    ControlSend "{0}",, "tkToolUtility.exe"
-    ControlSend "{x}",, "tkToolUtility.exe"
-    ControlSend "{F}",, "tkToolUtility.exe"
-    ControlSend "{4}",, "tkToolUtility.exe"
-    ControlSend  "{Enter}", , "tkToolUtility.exe"
-}
-
-Hex0xFA(*){
-    ControlSend "{0}",, "tkToolUtility.exe"
-    ControlSend "{x}",, "tkToolUtility.exe"
-    ControlSend "{F}",, "tkToolUtility.exe"
-    ControlSend "{A}",, "tkToolUtility.exe"
-    ControlSend  "{Enter}", , "tkToolUtility.exe"
-}
-
-Hex0xF7(*){
-    ControlSend "{0}",, "tkToolUtility.exe"
-    ControlSend "{x}",, "tkToolUtility.exe"
-    ControlSend "{F}",, "tkToolUtility.exe"
-    ControlSend "{7}",, "tkToolUtility.exe"
-    ControlSend  "{Enter}", , "tkToolUtility.exe"
-}
 
 Hex0xF1(*){
     ControlSend "{0}",, "tkToolUtility.exe"
@@ -3404,6 +3710,47 @@ Hex0xF2(*){
     ControlSend "{x}",, "tkToolUtility.exe"
     ControlSend "{F}",, "tkToolUtility.exe"
     ControlSend "{2}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+
+Hex0xF4(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{F}",, "tkToolUtility.exe"
+    ControlSend "{4}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+
+Hex0xF6(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{F}",, "tkToolUtility.exe"
+    ControlSend "{6}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+
+Hex0xF7(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{F}",, "tkToolUtility.exe"
+    ControlSend "{7}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+
+
+Hex0xFA(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{F}",, "tkToolUtility.exe"
+    ControlSend "{A}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+
+Hex0xFD(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{F}",, "tkToolUtility.exe"
+    ControlSend "{D}",, "tkToolUtility.exe"
     ControlSend  "{Enter}", , "tkToolUtility.exe"
 }
 
@@ -3454,6 +3801,14 @@ Hex0xDA(*){
     ControlSend  "{Enter}", , "tkToolUtility.exe"
 }
 
+Hex0xEB(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{E}",, "tkToolUtility.exe"
+    ControlSend "{B}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+
 Hex0x8A(*){
     ControlSend "{0}",, "tkToolUtility.exe"
     ControlSend "{x}",, "tkToolUtility.exe"
@@ -3467,6 +3822,22 @@ Hex0x8C(*){
     ControlSend "{x}",, "tkToolUtility.exe"
     ControlSend "{8}",, "tkToolUtility.exe"
     ControlSend "{C}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+
+Hex0x81(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{8}",, "tkToolUtility.exe"
+    ControlSend "{1}",, "tkToolUtility.exe"
+    ControlSend  "{Enter}", , "tkToolUtility.exe"
+}
+
+Hex0x87(*){
+    ControlSend "{0}",, "tkToolUtility.exe"
+    ControlSend "{x}",, "tkToolUtility.exe"
+    ControlSend "{8}",, "tkToolUtility.exe"
+    ControlSend "{7}",, "tkToolUtility.exe"
     ControlSend  "{Enter}", , "tkToolUtility.exe"
 }
 
