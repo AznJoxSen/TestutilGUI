@@ -1,13 +1,11 @@
-﻿#Requires AutoHotkey v2.0
-
-Run "tkToolUtility.exe"
+﻿Run "tkToolUtility.exe"
 Sleep 1000
 ControlSend  "{Enter}", , "tkToolUtility.exe"
 SetWorkingDir(A_ScriptDir)
 iconPath := A_ScriptDir . "\\icoFiles\\toolsICO.ico"
 TraySetIcon (iconPath)
 
-WindowTitle := "V4 TestUtilityGUI For Use With TestUtilityV40"
+WindowTitle := "V4.20 TestUtilityGUI For Use With TestUtilityV40"
 
 TUtilGui := Gui(, WindowTitle)
 
@@ -75,7 +73,7 @@ for index, line in Lines {
 
 
 ;Create tabs
-Tab := TUtilGui.Add("Tab3","-Wrap", ["Q-Telemetry", "Solenoid", "TC Node" , "1-Wire", "RSS", "Anchor Board", "Orientation"])
+Tab := TUtilGui.Add("Tab3","-Wrap", ["Q-Telemetry", "Solenoid", "TC Node" , "1-Wire", "RSS", "Anchor Board", "Orientation", "Environment", "FlowCtrl"])
 Tab.Font := "Bold"
 
 
@@ -229,6 +227,11 @@ COMPort.Delete()
 QTCOMPort.Delete()
 TCCOMPort.Delete()
 OneWireMasterCOMPort.Delete()
+RSSCOMPort.Delete()
+AnchorBoardCOMPort.Delete()
+OrientationCOMPort.Delete()
+EnvironmentCOMPort.Delete()
+FlowControlCOMPort.Delete()
 
 RunWaitOne(command) {
     shell := ComObject("WScript.Shell")
@@ -262,11 +265,14 @@ COMPort.Add(Words)
 QTCOMPort.Add(Words)
 TCCOMPort.Add(Words)
 OneWireMasterCOMPort.Add(Words)
-
+RSSCOMPort.Add(Words)
+AnchorBoardCOMPort.Add(Words)
+OrientationCOMPort.Add(Words)
+EnvironmentCOMPort.Add(Words)
+FlowControlCOMPort.Add(Words)
 }
 
-;SolBtn9 := TUtilGui.Add("Button", "x26 y250" ,"FW Menu")
-;SolBtn9.OnEvent("Click", SolVisibleStateShow)
+
 
 SolCheckMark4 := TUtilGui.Add("Checkbox", "x26 y200", "Update Firmware?")
 SolCheckMark4.OnEvent("Click", SolCheckBoxEvent4)
@@ -332,18 +338,29 @@ if (file1Contents == CurrentFile)
     }
 }
 
+
+SolenoidIDArray := ["FlexDrive - 0x12", "MotorPump - 0x13", "CompactTracMP - 0x13", "SJR - 0x14", "PrimeStroker - 0x15", "ShortStroker - 0x15", "ShortStrokerV2 - 0x15", "Puncher - 0x16"]
+
 ;Browse for FW for Solenoid
 SolText2 := TUtilGui.Add("Text", "Hidden1 ", "Select Firmware Version")
 SolBtn1 := TUtilGui.Add("Button", "Hidden1 ", "Browse")
 SolBtn1.OnEvent("Click", OpenFiledialogSolenoid)
-SolText3 := TUtilGui.Add("Text", "Hidden1 ", "Choose a Solenoid if more than one connected")
-ChooseSolFWIns := TUtilGui.AddDropDownList("Hidden1 W170", ["FlexDrive - 0x12", "MotorPump - 0x13", "CompactTracMP - 0x13", "SJR - 0x14", "PrimeStroker - 0x15", "ShortStroker - 0x15", "ShortStrokerV2 - 0x15", "Puncher - 0x16"])
+SolText3 := TUtilGui.Add("Text", "Hidden1 ", "Choose a Solenoid")
+ChooseSolFWIns := TUtilGui.AddDropDownList("Hidden1 W170", SolenoidIDArray)
+ChooseSolFWIns.OnEvent("Change", EnableSolBTN)
 
+EnableSolBTN(*){
+    if ChooseSolFWIns == "" {
+
+    }
+    if ChooseSolFWIns != "" {
+        SolBtn2.Enabled := true
+    }
+}
 
 ;Install FW to Solenoid
 SolText4 := TUtilGui.Add("Text", "Hidden1 ", "Install Firmware to Solenoid")
-
-SolBtn2 := TUtilGui.Add("Button", "Hidden1 ", "Install")
+SolBtn2 := TUtilGui.Add("Button", "Hidden1 Disabled1", "Install")
 SolBtn2.OnEvent("Click", InstallSolenoidEz)
 
 SolGroupBox2 := TUtilGui.Add("GroupBox","Hidden1 x280 y300 H180 W230")
@@ -363,9 +380,10 @@ SolBtn5.OnEvent("Click", SolPCANReinitialize)
 
 ;Choose what solenoid to access
 SolText7 := TUtilGui.Add("Text","Hidden1 x290 y420", "Choose Solenoid Board")
-SolenoidAccess := TUtilGui.AddDropDownList("Hidden1 W170 Disabled1", ["FlexDrive - 0x12", "MotorPump - 0x13", "CompactTracMP - 0x13", "SJR - 0x14", "PrimeStroker - 0x15", "ShortStroker - 0x15", "ShortStrokerV2 - 0x15", "Puncher - 0x16"])
+SolenoidAccess := TUtilGui.AddDropDownList("Hidden1 W170 Disabled1", SolenoidIDArray)
 SolenoidAccess.OnEvent("Change", SolenoidIDs)
 ;CBS_DISABLENOSCROLL
+
 
 SolGroupBox3 := TUtilGui.Add("GroupBox","Hidden1 x590 y35 W198 H208")
 
@@ -394,13 +412,17 @@ SolGroupBox6 := TUtilGui.Add("GroupBox", "Hidden1 x590 y250 W198 H124")
 
 ;Changing Solenoid Usage
 SolText8 := TUtilGui.Add("Text","Hidden1 x600 y254 ", "Change Solenoid Usage")
-SolenoidUse := TUtilGui.AddDropDownList("Hidden1 W170", ["FlexDrive - 0x12", "MotorPump - 0x13", "CompactTracMP - 0x13", "SJR - 0x14", "PrimeStroker - 0x15", "ShortStroker - 0x15", "ShortStrokerV2 - 0x15", "Puncher - 0x16"])
+SolenoidUse := TUtilGui.AddDropDownList("Hidden1 W170", SolenoidIDArray)
 SolenoidUse.OnEvent("Change", SolenoidUsage)
 
 ;Changing sensor types
 SolText9 := TUtilGui.Add("Text","Hidden1 " , "Change Sensor Type")
 SensorType := TUtilGui.AddDropDownList("Hidden1 W170",["HallEffect", "QuadEncoder", "Mech", "Unknown"])
 SensorType.OnEvent("Change", SensorTypeChange)
+
+SolElLabAccessBtn := TUtilGui.Add("Button", "Hidden1 x608 y520", "ElLabAccess")
+SolElLabAccessBtn.OnEvent("Click", AccessElLab)
+
 
 SolGroupBox4 := TUtilGui.Add("GroupBox","Hidden1 x598 y555 W170 H102")
 
@@ -443,7 +465,7 @@ CompactStrokerDropDownListArray := ["DDP3 'P-Sa' Linear", "DDP3 'P-Sb' Linear", 
 ;Changing sensor values
 SolText26 := TUtilGui.Add("Text","Hidden1 x808 y120" , "Choose Sensor To Update Values")
 SolenoidSensorsDropDownList := TUtilGui.AddDropDownList("Hidden1 W230", TheRestDropDownListArray)
-SolenoidSensorsDropDownList.OnEvent("Change", SensorIDs)
+SolenoidSensorsDropDownList.OnEvent("Change", SensorInputShow)
 ;Input edit box for sensor values
 
 SolRadioBtn1.OnEvent("Click", SolenoidSensorTypes)
@@ -601,13 +623,23 @@ TCText1 := TUtilGui.Add("Text","Hidden1 ", "Select Firmware Version")
 TCBtn1 := TUtilGui.Add("Button","Hidden1 ", "Browse")
 TCBtn1.OnEvent("Click", OpenFiledialogTC)
 
-TCText2 := TUtilGui.Add("Text","Hidden1 ", "Choose a TC Node if more than one connected")
+TCText2 := TUtilGui.Add("Text","Hidden1 ", "Choose a TC Node")
 ChooseTCFWIns := TUtilGui.AddDropDownList("Hidden1 W160", ["Upper PR STR - 0x30", "Lower PR STR - 0x31", "Upper TC - 0x32", "Lower TC - 0x33", "DDR TC SJR - 0x34"])
+ChooseTCFWIns.OnEvent("Change", EnableTCBTN)
+
+EnableTCBTN(*){
+    if ChooseTCFWIns == "" {
+
+    }
+    if ChooseTCFWIns != "" {
+        TCBtn2.Enabled := true
+    }
+}
 
 ;Install FW to TC Node
 TCText3 := TUtilGui.Add("Text","Hidden1 ", "Install Firmware to TC Node")
 
-TCBtn2 := TUtilGui.Add("Button","Hidden1 ", "Install")
+TCBtn2 := TUtilGui.Add("Button","Hidden1 Disabled1", "Install")
 TCBtn2.OnEvent("Click", InstallFWTC)
 
 TCGroupBox2 := TUtilGui.Add("GroupBox","Hidden1 x280 y300 H180 W230")
@@ -680,24 +712,32 @@ TCToolID.OnEvent("LoseFocus", TCBtnUnFocus)
 TCCheckBoxEvent1(*){
     if TCCheckBox1.Value == "1" {
         TCFWVisibleStateShow
+        TCCheckBox2.Value := "0"
+        TCCheckBoxEvent2
     }
     else if TCCheckBox1.Value == "0" {
         TCFWVisibleStateHide
+        ChooseTCFWIns.Choose 0
     }
 }
 
 TCCheckBoxEvent2(*){
     if TCCheckBox2.Value == "1" {
         TCMenuVisibleStateShow
+        TCCheckBox1.Value := "0"
+        TCCheckBoxEvent1
     }
     else if TCCheckBox2.Value == "0" {
         TCMenuVisibleStateHide
+        TCAccess.Choose 0
     }
 }
 
 TCCheckBoxEvent3(*){
     if TCCheckBox3.Value == "1" {
         TCChangeVisibleStateShow
+        TCCheckBox4.Value := "0"
+        TCIDVisibleStateHide
     }
     else if TCCheckBox3.Value == "0" {
         TCChangeVisibleStateHide
@@ -707,6 +747,8 @@ TCCheckBoxEvent3(*){
 TCCheckBoxEvent4(*){
     if TCCheckBox4.Value == "1" {
         TCIDVisibleStateShow
+        TCCheckBox3.Value := "0"
+        TCChangeVisibleStateHide
     }
     else if TCCheckBox4.Value == "0" {
         TCIDVisibleStateHide
@@ -804,6 +846,7 @@ TCFWVisibleStateHide(*){
     TCText3.Visible := false
     TCBtn2.Visible := false
     ChooseTCFWIns.Visible := false
+    TCBtn2.Enabled := false
 }
 
 TCMenuVisibleStateHide(*){
@@ -888,7 +931,7 @@ OneWireCheckBox1.OnEvent("Click", OneWireCheckBoxEvent1)
 OneWireCheckBox2 := TUtilGui.Add("Checkbox", "x26 y250", "Access OneWire?")
 OneWireCheckBox2.OnEvent("Click", OneWireCheckBoxEvent2)
 
-OneWireGroupBox1 := TUtilGui.Add("GroupBox", "x280 y35 H180 W260 Hidden1")
+OneWireGroupBox1 := TUtilGui.Add("GroupBox", "x280 y35 H235 W260 Hidden1")
 OneWireText1 := TUtilGui.Add("Text","x290 y39 Hidden1", "FW Selected for Installing 1-Wire Master")
 OneWireMasterFW := TUtilGui.Add("Edit", "ReadOnly Hidden1")
 OneWireMasterFW.SetFont("cBlack")
@@ -928,14 +971,28 @@ if (fileOneWireMasterContents == CurrentFileOneWireM)
     }
 }
 
+OneWireIDArray := ["One Wire Master - 0x3A"]
+
 ;Browse for FW for One Wire Master
 OneWireText2 := TUtilGui.Add("Text","Hidden1", "Select Firmware Version")
 OneWireBtn1 := TUtilGui.Add("Button","Hidden1", "Browse")
 OneWireBtn1.OnEvent("Click", OpenFiledialogOneWireMaster)
 
+OneWireText19 := TUtilGui.Add("Text","Hidden1","Choose One Wire Master")
+ChooseOneWireMasterFWIns := TUtilGui.AddDropDownList("w170 Hidden1", OneWireIDArray)
+ChooseOneWireMasterFWIns.OnEvent("Change", EnableOneWireBTN)
+
+EnableOneWireBTN(*){
+    if ChooseOneWireMasterFWIns == ""{
+
+    }
+    if ChooseOneWireMasterFWIns != ""
+        OneWireBtn2.Enabled := true
+}
+
 ;Install FW to One Wire Master
 OneWireText3 := TUtilGui.Add("Text","Hidden1", "Install Firmware to One Wire Master")
-OneWireBtn2 := TUtilGui.Add("Button","Hidden1", "Install")
+OneWireBtn2 := TUtilGui.Add("Button","Hidden1 Disabled1", "Install")
 OneWireBtn2.OnEvent("Click", InstallFWOneWireMaster)
 
 
@@ -1095,33 +1152,45 @@ OneWireSensorIDs(*){
 OneWireCheckBoxEvent1(*){
     if OneWireCheckBox1.Value == "1" {
         OneWireFWVisibleStateShow
+        OneWireCheckBox2.Value := "0"
+        OneWireCheckBoxEvent2
     }
     else if OneWireCheckBox1.Value == "0" {
         OneWireFWVisibleStateHide
+        ChooseOneWireMasterFWIns.Choose 0
     }
 }
 
 OneWireCheckBoxEvent2(*){
     if OneWireCheckBox2.Value == "1" {
         OneWireMenuVisibleStateShow
+        OneWireCheckBox1.Value := "0"
+        OneWireCheckBoxEvent1
     }
     else if OneWireCheckBox2.Value == "0" {
         OneWireMenuVisibleStateHide
+        OneWireMasterAccess.Choose 0
     }
 }
 
 OneWireCheckBoxEvent3(*){
     if OneWireCheckBox3.Value == "1" {
         OneWireSensorChangeShow
+        OneWireCheckBox4.Value := "0"
+        OneWireIDVisibleStateHide
     }
     else if OneWireCheckBox3.Value == "0" {
         OneWireSensorChangeHide
+        OneWireDDL1.Choose 0
     }
 }
 
 OneWireCheckBoxEvent4(*){
     if OneWireCheckBox4.Value == "1" {
         OneWireIDVisibleStateShow
+        OneWireCheckBox3.Value := "0"
+        OneWireSensorChangeHide
+        OneWireDDL1.Choose 0
     }
     else if OneWireCheckBox4.Value == "0" {
         OneWireIDVisibleStateHide
@@ -1136,6 +1205,8 @@ OneWireFWVisibleStateShow(*){
     OneWireBtn1.Visible := true
     OneWireText3.Visible := true
     OneWireBtn2.Visible := true
+    ChooseOneWireMasterFWIns.Visible := true
+    OneWireText19.Visible := true
 }
 
 OneWireMenuVisibleStateShow(*){
@@ -1220,6 +1291,9 @@ OneWireFWVisibleStateHide(*){
     OneWireBtn1.Visible := false
     OneWireText3.Visible := false
     OneWireBtn2.Visible := false
+    ChooseOneWireMasterFWIns.Visible := false
+    OneWireText19.Visible := false
+    OneWireBtn2.Enabled := false
 }
 
 OneWireMenuVisibleStateHide(*){
@@ -1231,6 +1305,8 @@ OneWireMenuVisibleStateHide(*){
     OneWireBtn4.Visible := false
     OneWireBtn5.Visible := false
     OneWireMasterAccess.Visible := false
+    OneWireBtn4.Enabled := false
+    OneWireBtn5.Enabled := false
 }
 
 OneWireIDVisibleStateHide(*){
@@ -1361,11 +1437,22 @@ RSSBtn1.OnEvent("Click", OpenFiledialogRSS)
 
 RSSText3 := TUtilGui.Add("Text","Hidden1 ", "Choose an RSS Node if more than one connected")
 ChooseRSSFWIns := TUtilGui.AddDropDownList("Hidden1 W160", ["Upper RSS - 0x1A","Lower RSS - 0x1B"])
+ChooseRSSFWIns.OnEvent("Change", EnableRSSBTN)
+
+
+EnableRSSBTN(*){
+    if ChooseRSSFWIns == "" {
+
+    }
+    if ChooseRSSFWIns != "" {
+        RSSBtn2.Enabled := true
+    }
+}
 
 ;Install FW to RSS Node
 RSSText4 := TUtilGui.Add("Text","Hidden1 ", "Install Firmware to RSS Node")
 
-RSSBtn2 := TUtilGui.Add("Button","Hidden1 ", "Install")
+RSSBtn2 := TUtilGui.Add("Button","Hidden1 Disabled1", "Install")
 RSSBtn2.OnEvent("Click", InstallFWRSS)
 
 RSSGroupBox2 := TUtilGui.Add("GroupBox","Hidden1 x280 y300 H180 W230")
@@ -1444,33 +1531,46 @@ RSSToolID.OnEvent("LoseFocus", RSSBtnUnFocus)
 RSSCheckBoxEvent1(*){
     if RSSCheckBox1.Value == "1" {
         RSSFWVisibleStateShow
+        RSSCheckBox2.Value := "0"
+        RSSCheckBoxEvent2
     }
     else if RSSCheckBox1.Value == "0" {
         RSSFWVisibleStateHide
+        ChooseRSSFWIns.Choose 0
     }
 }
 
 RSSCheckBoxEvent2(*){
     if RSSCheckBox2.Value == "1" {
         RSSMenuVisibleStateShow
+        RSSCheckBox1.Value := "0"
+        RSSCheckBoxEvent1
     }
     else if RSSCheckBox2.Value == "0" {
         RSSMenuVisibleStateHide
+        RSSAccess.Choose 0
     }
 }
 
 RSSCheckBoxEvent3(*){
     if RSSCheckBox3.Value == "1" {
         RSSChangeVisibleStateShow
+        RSSCheckBox4.Value := "0"
+        RSSIDVisibleStateHide
+        
     }
     else if RSSCheckBox3.Value == "0" {
         RSSChangeVisibleStateHide
+        RSSUsage.Choose 0
     }
 }
 
 RSSCheckBoxEvent4(*){
     if RSSCheckBox4.Value == "1" {
         RSSIDVisibleStateShow
+        RSSCheckBox3.Value := "0"
+        RSSChangeVisibleStateHide
+        RSSUsage.Choose 0
     }
     else if RSSCheckBox4.Value == "0" {
         RSSIDVisibleStateHide
@@ -1547,7 +1647,6 @@ RSSIDVisibleStateShow(*){
 RSSAllVisibleStateShow(*){
     RSSIDVisibleStateShow
     RSSFWVisibleStateShow
-    RSSAllVisibleStateShow
     RSSMenuVisibleStateShow
     RSSCheckVisibleStateShow
     RSSChangeVisibleStateShow
@@ -1556,7 +1655,6 @@ RSSAllVisibleStateShow(*){
 RSSAllVisibleStateHide(*){
     RSSIDVisibleStateHide
     RSSFWVisibleStateHide
-    RSSAllVisibleStateHide
     RSSMenuVisibleStateHide
     RSSCheckVisibleStateHide
     RSSChangeVisibleStateHide
@@ -1572,6 +1670,7 @@ RSSFWVisibleStateHide(*){
     ChooseRSSFWIns.Visible := false
     RSSText4.Visible := false
     RSSBtn2.Visible := false
+    RSSBtn2.Enabled := false
 }
 
 RSSMenuVisibleStateHide(*){
@@ -1661,7 +1760,7 @@ AnchorBoardFW := TUtilGui.Add("Edit", "Hidden1 ReadOnly")
 AnchorBoardFW.SetFont("cBlack")
 
 fileAnchorBoardContents := FileRead("hexFiles_ANC\ANC_leinApp_bl.hex")
-AnchorBoardFolder := ("Anchor Board FW\*.hex")
+AnchorBoardFolder := ("ANC FW\Main FW\*.hex")
 
 Loop Files AnchorBoardFolder, "F"
     {
@@ -1705,11 +1804,22 @@ AnchorBtn1.OnEvent("Click", OpenFiledialogAnchorBoard)
 
 AnchorText3 := TUtilGui.Add("Text","Hidden1 ", "Choose an Anchor Board Node if more than one connected")
 ChooseAnchorBoardFWIns := TUtilGui.AddDropDownList("Hidden1 W160", AnchorBoardArrayID)
+ChooseAnchorBoardFWIns.OnEvent("Change", EnableAnchorBTN)
+
+EnableAnchorBTN(*){
+    if ChooseAnchorBoardFWIns == "" {
+
+    }
+    if ChooseAnchorBoardFWIns != "" {
+        AnchorBtn2.Enabled := true
+    }
+}
+
 
 ;Install FW to Anchor Board Node
 AnchorText4 := TUtilGui.Add("Text","Hidden1 ", "Install Firmware to Anchor Board Node")
 
-AnchorBtn2 := TUtilGui.Add("Button","Hidden1 ", "Install")
+AnchorBtn2 := TUtilGui.Add("Button","Hidden1 Disabled1", "Install")
 AnchorBtn2.OnEvent("Click", InstallFWAnchorBoard)
 
 AnchorGroupBox2 := TUtilGui.Add("GroupBox","Hidden1 x280 y300 H180 W260")
@@ -1775,24 +1885,32 @@ AnchorBoardToolID.OnEvent("LoseFocus", AnchorBoardBtnUnFocus)
 AnchorCheckBoxEvent1(*){
     if AnchorCheckBox1.Value == "1" {
         AnchorFWVisibleStateShow
+        AnchorCheckBox2.Value := "0"
+        AnchorCheckBoxEvent2
     }
     else if AnchorCheckBox1.Value == "0" {
         AnchorFWVisibleStateHide
+        ChooseAnchorBoardFWIns.Choose 0
     }
 }
 
 AnchorCheckBoxEvent2(*){
     if AnchorCheckBox2.Value == "1" {
         AnchorMenuVisibleStateShow
+        AnchorCheckBox1.Value := "0"
+        AnchorCheckBoxEvent1
     }
     else if AnchorCheckBox2.Value == "0" {
         AnchorMenuVisibleStateHide
+        AnchorBoardAccess.Choose 0
     }
 }
 
 AnchorCheckBoxEvent3(*){
     if AnchorCheckBox3.Value == "1" {
         AnchorChangeVisibleStateShow
+        AnchorCheckBox4.Value := "0"
+        AnchorIDVisibleStateHide
     }
     else if AnchorCheckBox3.Value == "0" {
         AnchorChangeVisibleStateHide
@@ -1802,6 +1920,9 @@ AnchorCheckBoxEvent3(*){
 AnchorCheckBoxEvent4(*){
     if AnchorCheckBox4.Value == "1" {
         AnchorIDVisibleStateShow
+        AnchorCheckBox3.Value := "0"
+        AnchorChangeVisibleStateHide
+        AnchorBoardUsage.Choose 0
     }
     else if AnchorCheckBox4.Value == "0" {
         AnchorIDVisibleStateHide
@@ -1881,6 +2002,7 @@ AnchorFWVisibleStateHide(*){
     ChooseAnchorBoardFWIns.Visible := false
     AnchorText4.Visible := false
     AnchorBtn2.Visible := false
+    AnchorBtn2.Enabled := false
 }
 
 AnchorMenuVisibleStateHide(*){
@@ -1898,6 +2020,8 @@ AnchorCheckVisibleStateHide(*){
     AnchorGroupBox3.Visible := false
     AnchorText9.Visible := false
     AnchorBtn6.Visible := false
+    AnchorCheckBox3.Visible := false
+    AnchorCheckBox4.Visible := false
 }
 
 AnchorChangeVisibleStateHide(*){
@@ -1936,11 +2060,8 @@ OrientationComChoice.OnEvent("Change", ChangeComDDL)
 TUtilGui.Add("Text",, "Select COM Port Number")
 OrientationCOMPort := TUtilGui.AddDropDownList("W75 Disabled1", Words)
 
-
 RefreshOrientation := TUtilGui.Add("Button","x121 y145 Disabled1", "Refresh")
 RefreshOrientation.OnEvent("Click", RefreshBtn)
-
-
 
 TUtilGui.Add("Text", " x26 y600", "Manual input for TestUtil")
 OrientationInput := TUtilGui.Add("Edit", "")
@@ -1965,7 +2086,7 @@ OrientationFW := TUtilGui.Add("Edit", "Hidden1 ReadOnly")
 OrientationFW.SetFont("cBlack")
 
 fileOrientationContents := FileRead("hexFiles_ORI\ORI_leinApp_bl.hex")
-OrientationFolder := ("Orientation FW\*.hex")
+OrientationFolder := ("ORI FW\*.hex")
 
 Loop Files OrientationFolder, "F"
     {
@@ -2009,11 +2130,22 @@ OrientationBtn1.OnEvent("Click", OpenFiledialogOrientation)
 
 OrientationText3 := TUtilGui.Add("Text","Hidden1 ", "Choose an Orientation Node if more than one connected")
 ChooseOrientationFWIns := TUtilGui.AddDropDownList("Hidden1 W160", OrientationArrayID)
+ChooseOrientationFWIns.OnEvent("Change", EnableOrientationBTN)
+
+EnableOrientationBTN(*){
+    if ChooseOrientationFWIns == "" {
+
+    }
+    if ChooseOrientationFWIns != "" {
+        OrientationBtn2.Enabled := true
+    }
+}
+
 
 ;Install FW to Orientation Node
 OrientationText4 := TUtilGui.Add("Text","Hidden1 ", "Install Firmware to Orientation Node")
 
-OrientationBtn2 := TUtilGui.Add("Button","Hidden1 ", "Install")
+OrientationBtn2 := TUtilGui.Add("Button","Hidden1 Disabled1", "Install")
 OrientationBtn2.OnEvent("Click", InstallFWOrientation)
 
 OrientationGroupBox2 := TUtilGui.Add("GroupBox","Hidden1 x280 y300 H180 W240")
@@ -2080,24 +2212,32 @@ OrientationToolID.OnEvent("LoseFocus", OrientationBtnUnFocus)
 OrientationCheckBoxEvent1(*){
     if OrientationCheckBox1.Value == "1" {
         OrientationFWVisibleStateShow
+        OrientationCheckBox2.Value := "0"
+        OrientationCheckBoxEvent2
     }
     else if OrientationCheckBox1.Value == "0" {
         OrientationFWVisibleStateHide
+        ChooseOrientationFWIns.Choose 0
     }
 }
 
 OrientationCheckBoxEvent2(*){
     if OrientationCheckBox2.Value == "1" {
         OrientationMenuVisibleStateShow
+        OrientationCheckBox1.Value := "0"
+        OrientationCheckBoxEvent1
     }
     else if OrientationCheckBox2.Value == "0" {
         OrientationMenuVisibleStateHide
+        OrientationAccess.Choose 0
     }
 }
 
 OrientationCheckBoxEvent3(*){
     if OrientationCheckBox3.Value == "1" {
         OrientationChangeVisibleStateShow
+        OrientationCheckBox4.Value := "0"
+        OrientationIDVisibleStateHide
     }
     else if OrientationCheckBox3.Value == "0" {
         OrientationChangeVisibleStateHide
@@ -2107,6 +2247,8 @@ OrientationCheckBoxEvent3(*){
 OrientationCheckBoxEvent4(*){
     if OrientationCheckBox4.Value == "1" {
         OrientationIDVisibleStateShow
+        OrientationCheckBox3.Value := "0"
+        OrientationChangeVisibleStateHide
     }
     else if OrientationCheckBox4.Value == "0" {
         OrientationIDVisibleStateHide
@@ -2187,6 +2329,7 @@ OrientationText3.Visible := false
 OrientationText4.Visible := false
 OrientationBtn2.Visible := false
 ChooseOrientationFWIns.Visible := false
+OrientationBtn2.Enabled := false
 }
 
 OrientationMenuVisibleStateHide(*){
@@ -2225,6 +2368,649 @@ OrientationToolID.Visible := false
 OrientationIdBtn.Visible := false
 }
 
+
+;---------------------------------------------------------------
+
+; For Environment tab
+Tab.UseTab("Environment")
+
+TUtilGui.Add("Button","x1100 y630","Restart TestUtility").OnEvent("Click", RestartTestUtil)
+
+TUtilGui.Add("GroupBox","x18 y35 W255 H150")
+
+;Selecting communication option for Environment
+TUtilGui.Add("Text","x26 y39","Select Communication Choice")
+EnvironmentComChoice := TUtilGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM"])
+EnvironmentComChoice.Choose("PCAN")
+EnvironmentComChoice.OnEvent("Change", ChangeComDDL)
+
+TUtilGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
+
+;Manually choose com port number
+TUtilGui.Add("Text",, "Select COM Port Number")
+EnvironmentCOMPort := TUtilGui.AddDropDownList("W75 Disabled1", Words)
+
+RefreshEnvironment := TUtilGui.Add("Button","x121 y145 Disabled1", "Refresh")
+RefreshEnvironment.OnEvent("Click", RefreshBtn)
+
+TUtilGui.Add("Text", " x26 y600", "Manual input for TestUtil")
+EnvironmentInput := TUtilGui.Add("Edit", "")
+EnvironmentInput.SetFont("cBlack")
+
+EnvironmentInput.OnEvent("Focus", EnvironmentManBTNFocus)
+EnvironmentInput.OnEvent("LoseFocus", EnvironmentManBTNUnFocus)
+
+EnvironmentManInput := TUtilGui.Add("Button","x180 y620","Submit")
+EnvironmentManInput.OnEvent("Click", EnvironmentInputValueEnter)
+
+EnvironmentCheckBox1 := TUtilGui.Add("Checkbox", "x26 y200", "Update Firmware?")
+EnvironmentCheckBox1.OnEvent("Click", EnvironmentCheckBoxEvent1)
+
+EnvironmentCheckBox2 := TUtilGui.Add("Checkbox", "x26 y250", "Access Environment?")
+EnvironmentCheckBox2.OnEvent("Click", EnvironmentCheckBoxEvent2)
+
+EnvironmentGroupBox1 := TUtilGui.Add("GroupBox", "Hidden1 x280 y35 H235 W260")
+
+EnvironmentText1 := TUtilGui.Add("Text","Hidden1 x290 y39", "FW Selected for Installing")
+EnvironmentFW := TUtilGui.Add("Edit", "Hidden1 ReadOnly")
+EnvironmentFW.SetFont("cBlack")
+
+fileENVContents := FileRead("hexFiles_ENV\ENV_leinApp_bl.hex")
+EnvironmentFolder := ("ENV FW\Main FW\*.hex")
+
+Loop Files EnvironmentFolder, "F"
+    {
+        FilePathENV := A_LoopFileFullPath
+        CurrentFileENV := FileRead(FilePathENV)
+
+if (fileENVContents == CurrentFileENV) 
+    {      
+    FWEnvironmentFile := A_LoopFileName
+        EnvironmentFW.Text := FWEnvironmentFile
+
+    break
+    }
+    }
+
+CheckFWLoopEnvironment(*){
+Loop Files EnvironmentFolder, "F"
+    {
+        fileENVContents := FileRead("hexFiles_ENV\ENV_leinApp_bl.hex")
+        FilePathENV := A_LoopFileFullPath
+
+        CurrentFileENV := FileRead(FilePathENV)
+if (fileENVContents == CurrentFileENV) 
+    {
+    FWEnvironmentFile := A_LoopFileName
+        EnvironmentFW.Text := FWEnvironmentFile
+        FWEnvironmentFile := ""
+        CurrentFileENV := ""
+    break
+    }
+    }
+}
+
+;Browse for FW for Environment
+EnvironmentText2 := TUtilGui.Add("Text","Hidden1 ", "Select Firmware Version")
+EnvironmentBtn1 := TUtilGui.Add("Button","Hidden1 ", "Browse")
+EnvironmentBtn1.OnEvent("Click", OpenFiledialogEnvironment)
+
+EnvironmentArrayID := ["0x21"]
+
+EnvironmentText3 := TUtilGui.Add("Text","Hidden1 ", "Choose an Environment Node")
+ChooseEnvironmentFWIns := TUtilGui.AddDropDownList("Hidden1 W160", EnvironmentArrayID)
+ChooseEnvironmentFWIns.OnEvent("Change", EnableEnvironmentBTN)
+
+EnableEnvironmentBTN(*){
+    if ChooseEnvironmentFWIns == "" {
+
+    }
+    if ChooseEnvironmentFWIns != "" {
+        EnvironmentBtn2.Enabled := true
+    }
+}
+
+
+;Install FW to Environment Node
+EnvironmentText4 := TUtilGui.Add("Text","Hidden1 ", "Install Firmware to Environment Node")
+
+EnvironmentBtn2 := TUtilGui.Add("Button","Hidden1 Disabled1", "Install")
+EnvironmentBtn2.OnEvent("Click", InstallFWEnvironment)
+
+EnvironmentGroupBox2 := TUtilGui.Add("GroupBox","Hidden1 x280 y300 H180 W250")
+
+;Access Environment NOde
+EnvironmentText5 := TUtilGui.Add("Text","Hidden1 x290 y300", "Go to Access Environment Node Menu")
+EnvironmentBtn3 := TUtilGui.Add("Button", "Hidden1 " ,"Go To Menu")
+EnvironmentBtn3.OnEvent("Click", EnvironmentMenu)
+
+;Rescan of Environment Nodes CAN IDs
+EnvironmentText6 := TUtilGui.Add("Text","Hidden1 ", "Rescan Nodes If Necessecary")
+EnvironmentBtn4 := TUtilGui.Add("Button","Hidden1 Disabled1 ", "Rescan")
+EnvironmentBtn4.OnEvent("Click", PingNodes)
+
+EnvironmentBtn5 := TUtilGui.Add("Button","Hidden1 Disabled1 x370 y381", "Re-Initialize PCAN")
+EnvironmentBtn5.OnEvent("Click", PCANReinitialize)
+
+EnvironmentText7 := TUtilGui.Add("Text","Hidden1 x290 y420", "Choose Environment")
+EnvironmentAccess := TUtilGui.AddDropDownList("Hidden1 Disabled1 W160", EnvironmentArrayID)
+EnvironmentAccess.OnEvent("Change", UseEnvironmentID)
+
+EnvironmentGroupBox3 := TUtilGui.Add("GroupBox","Hidden1 x640 y35 W215 H170")
+
+EnvironmentText8 := TUtilGui.Add("Text","Hidden1 x650 y39" , "Check Current Settings")
+EnvironmentBtn6 := TUtilGui.Add("Button","Hidden1 ","Check")
+EnvironmentBtn6.OnEvent("Click", CheckCal)
+
+EnvironmentText9 := TUtilGui.Add("Text","Hidden1 " , "Check Calibration Table")
+EnvironmentBtn7 := TUtilGui.Add("Button","Hidden1 ","Check")
+EnvironmentBtn7.OnEvent("Click", CheckSet)
+
+EnvironmentCheckBox3 := TUtilGui.Add("Checkbox","Hidden1", "Change Environment Settings?")
+EnvironmentCheckBox3.OnEvent("Click", EnvironmentCheckBoxEvent3)
+
+EnvironmentCheckBox4 := TUtilGui.Add("Checkbox","Hidden1 ", "Update IDs?")
+EnvironmentCheckBox4.OnEvent("Click", EnvironmentCheckBoxEvent4)
+
+EnvironmentGroupBox4 :=TUtilGui.Add("GroupBox","Hidden1 x640 y246 W200 H70")
+
+EnvironmentGroupBox5 := TUtilGui.Add("GroupBox","Hidden1 x870 y35 W330 H130")
+
+;Text for IDs
+EnvironmentText10 := TUtilGui.Add("Text","Hidden1 x880 y60", "Update Altus/Board ID")
+EnvironmentText11 := TUtilGui.Add("Text","Hidden1", "Update Tool ID")
+
+;Input edit box for IDs
+EnvironmentText12 := TUtilGui.Add("Text","Hidden1 x1030 y39","Input Environment IDs")
+EnvironmentAltusID := TUtilGui.Add("Edit","Hidden1 x1030 y60")
+EnvironmentToolID := TUtilGui.Add("Edit","Hidden1")
+
+EnvironmentAltusID.SetFont("cBlack")
+EnvironmentToolID.SetFont("cBlack")
+
+EnvironmentIdBtn := TUtilGui.Add("Button","Hidden1", "Update IDs")
+EnvironmentIdBtn.OnEvent("Click", UpdateEnvironmentIDs)
+
+EnvironmentAltusID.OnEvent("Focus", EnvironmentBtnFocus)
+EnvironmentAltusID.OnEvent("LoseFocus", EnvironmentBtnUnFocus)
+
+EnvironmentToolID.OnEvent("Focus", EnvironmentBtnFocus)
+EnvironmentToolID.OnEvent("LoseFocus", EnvironmentBtnUnFocus)
+
+
+EnvironmentCheckBoxEvent1(*){
+    if EnvironmentCheckBox1.Value == "1" {
+        EnvironmentFWVisibleStateShow
+        EnvironmentCheckBox2.Value := "0"
+        EnvironmentCheckBoxEvent2
+    }
+    else if EnvironmentCheckBox1.Value == "0" {
+        EnvironmentFWVisibleStateHide
+        ChooseEnvironmentFWIns.Choose 0
+    }
+}
+
+EnvironmentCheckBoxEvent2(*){
+    if EnvironmentCheckBox2.Value == "1" {
+        EnvironmentMenuVisibleStateShow
+        EnvironmentCheckBox1.Value := "0"
+        EnvironmentCheckBoxEvent1
+    }
+    else if EnvironmentCheckBox2.Value == "0" {
+        EnvironmentMenuVisibleStateHide
+        EnvironmentAccess.Choose 0
+    }
+}
+
+EnvironmentCheckBoxEvent3(*){
+    if EnvironmentCheckBox3.Value == "1" {
+        EnvironmentChangeVisibleStateShow
+        EnvironmentCheckBox4.Value := "0"
+        EnvironmentIDVisibleStateHide
+    }
+    else if EnvironmentCheckBox3.Value == "0" {
+        EnvironmentChangeVisibleStateHide
+    }
+}
+
+EnvironmentCheckBoxEvent4(*){
+    if EnvironmentCheckBox4.Value == "1" {
+        EnvironmentIDVisibleStateShow
+        EnvironmentCheckBox3.Value := "0"
+        EnvironmentChangeVisibleStateHide
+    }
+    else if EnvironmentCheckBox4.Value == "0" {
+        EnvironmentIDVisibleStateHide
+    }
+}
+
+
+
+EnvironmentFWVisibleStateShow(*){
+    EnvironmentGroupBox1.Visible := true
+    EnvironmentText1.Visible := true
+    EnvironmentFW.Visible := true
+    EnvironmentText2.Visible := true
+    EnvironmentBtn1.Visible := true
+    EnvironmentText3.Visible := true
+    ChooseEnvironmentFWIns.Visible := true
+    EnvironmentText4.Visible := true
+    EnvironmentBtn2.Visible := true
+    EnvironmentBtn2.Enabled := true
+
+}
+EnvironmentMenuVisibleStateShow(*){
+    EnvironmentGroupBox2.Visible := true
+    EnvironmentText5.Visible := true
+    EnvironmentBtn3.Visible := true
+    EnvironmentText6.Visible := true
+    EnvironmentBtn4.Visible := true
+    EnvironmentBtn5.Visible := true
+    EnvironmentText7.Visible := true
+    EnvironmentAccess.Visible := true
+
+}
+EnvironmentCheckVisibleStateShow(*){
+    EnvironmentGroupBox3.Visible := true
+    EnvironmentText8.Visible := true
+    EnvironmentBtn6.Visible := true
+    EnvironmentText9.Visible := true
+    EnvironmentBtn7.Visible := true
+    ;Remove when in use\ EnvironmentCheckBox3.Visible := true
+    EnvironmentCheckBox4.Visible := true
+}
+EnvironmentChangeVisibleStateShow(*){
+
+}
+EnvironmentIDVisibleStateShow(*){
+    EnvironmentGroupBox5.Visible := true
+    EnvironmentText10.Visible := true
+    EnvironmentText11.Visible := true
+    EnvironmentText12.Visible := true
+    EnvironmentAltusID.Visible := true
+    EnvironmentToolID.Visible := true
+    EnvironmentIdBtn.Visible := true
+}
+EnvironmentAllVisibleStateShow(*){
+    EnvironmentFWVisibleStateShow
+    EnvironmentIDVisibleStateShow
+    EnvironmentMenuVisibleStateShow
+    EnvironmentCheckVisibleStateShow
+    EnvironmentChangeVisibleStateShow
+
+}
+EnvironmentAllVisibleStateHide(*){
+    EnvironmentFWVisibleStateHide
+    EnvironmentIDVisibleStateHide
+    EnvironmentMenuVisibleStateHide
+    EnvironmentCheckVisibleStateHide
+    EnvironmentChangeVisibleStateHide
+
+}
+EnvironmentFWVisibleStateHide(*){
+    EnvironmentGroupBox1.Visible := false
+    EnvironmentText1.Visible := false
+    EnvironmentFW.Visible := false
+    EnvironmentText2.Visible := false
+    EnvironmentBtn1.Visible := false
+    EnvironmentText3.Visible := false
+    ChooseEnvironmentFWIns.Visible := false
+    EnvironmentText4.Visible := false
+    EnvironmentBtn2.Visible := false
+    EnvironmentBtn2.Enabled := false
+}
+EnvironmentMenuVisibleStateHide(*){
+    EnvironmentGroupBox2.Visible := false
+    EnvironmentText5.Visible := false
+    EnvironmentBtn3.Visible := false
+    EnvironmentText6.Visible := false
+    EnvironmentBtn4.Visible := false
+    EnvironmentBtn5.Visible := false
+    EnvironmentText7.Visible := false
+    EnvironmentAccess.Visible := false
+}
+EnvironmentCheckVisibleStateHide(*){
+    EnvironmentGroupBox3.Visible := false
+    EnvironmentText8.Visible := false
+    EnvironmentBtn6.Visible := false
+    EnvironmentText9.Visible := false
+    EnvironmentBtn7.Visible := false
+    EnvironmentCheckBox3.Visible := false
+    EnvironmentCheckBox4.Visible := false
+}
+EnvironmentChangeVisibleStateHide(*){
+
+}
+EnvironmentIDVisibleStateHide(*){
+    EnvironmentGroupBox5.Visible := false
+    EnvironmentText10.Visible := false
+    EnvironmentText11.Visible := false
+    EnvironmentText12.Visible := false
+    EnvironmentAltusID.Visible := false
+    EnvironmentToolID.Visible := false
+    EnvironmentIdBtn.Visible := false
+}
+
+;----------------------------------------------------------------
+
+; For FlowControl tab
+Tab.UseTab("FlowCtrl")
+
+TUtilGui.Add("Button","x1100 y630","Restart TestUtility").OnEvent("Click", RestartTestUtil)
+
+TUtilGui.Add("GroupBox","x18 y35 W255 H150")
+
+;Selecting communication option for FlowControl
+TUtilGui.Add("Text","x26 y39","Select Communication Choice")
+FlowControlComChoice := TUtilGui.AddDropDownList("w130", ["PCAN","QPSK/MasterBox","OFDM"])
+FlowControlComChoice.Choose("PCAN")
+FlowControlComChoice.OnEvent("Change", ChangeComDDL)
+
+TUtilGui.Add("Text",, "OBS! Choose COM Port for QPSK/OFDM")
+
+;Manually choose com port number
+TUtilGui.Add("Text",, "Select COM Port Number")
+FlowControlCOMPort := TUtilGui.AddDropDownList("W75 Disabled1", Words)
+
+RefreshFlowControl := TUtilGui.Add("Button","x121 y145 Disabled1", "Refresh")
+RefreshFlowControl.OnEvent("Click", RefreshBtn)
+
+TUtilGui.Add("Text", " x26 y600", "Manual input for TestUtil")
+FlowControlInput := TUtilGui.Add("Edit", "")
+FlowControlInput.SetFont("cBlack")
+
+FlowControlInput.OnEvent("Focus", FlowControlManBTNFocus)
+FlowControlInput.OnEvent("LoseFocus", FlowControlManBTNUnFocus)
+
+FlowControlManInput := TUtilGui.Add("Button","x180 y620","Submit")
+FlowControlManInput.OnEvent("Click", FlowControlInputValueEnter)
+
+FlowControlCheckBox1 := TUtilGui.Add("Checkbox", "x26 y200", "Update Firmware?")
+FlowControlCheckBox1.OnEvent("Click", FlowControlCheckBoxEvent1)
+
+FlowControlCheckBox2 := TUtilGui.Add("Checkbox", "x26 y250", "Access FlowControl?")
+FlowControlCheckBox2.OnEvent("Click", FlowControlCheckBoxEvent2)
+
+FlowControlGroupBox1 := TUtilGui.Add("GroupBox", "Hidden1 x280 y35 H235 W260")
+
+FlowControlText1 := TUtilGui.Add("Text","Hidden1 x290 y39", "FW Selected for Installing")
+FlowControlFW := TUtilGui.Add("Edit", "Hidden1 ReadOnly")
+FlowControlFW.SetFont("cBlack")
+
+fileFCContents := FileRead("hexFiles_flowCtrl\FC_leinApp_bl.hex")
+FlowControlFolder := ("FC FW\Main FW\*.hex")
+
+Loop Files FlowControlFolder, "F"
+    {
+        FilePathFC := A_LoopFileFullPath
+        CurrentFileFC := FileRead(FilePathFC)
+
+if (fileFCContents == CurrentFileFC) 
+    {      
+    FWFlowControlFile := A_LoopFileName
+        FlowControlFW.Text := FWFlowControlFile
+
+    break
+    }
+    }
+
+CheckFWLoopFlowControl(*){
+Loop Files FlowControlFolder, "F"
+    {
+        fileFCContents := FileRead("hexFiles_flowCtrl\FC_leinApp_bl.hex")
+        FilePathFC := A_LoopFileFullPath
+
+        CurrentFileFC := FileRead(FilePathFC)
+if (fileFCContents == CurrentFileFC) 
+    {
+    FWFlowControlFile := A_LoopFileName
+        FlowControlFW.Text := FWFlowControlFile
+        FWFlowControlFile := ""
+        CurrentFileFC := ""
+    break
+    }
+    }
+}
+
+;Browse for FW for FlowControl
+FlowControlText2 := TUtilGui.Add("Text","Hidden1 ", "Select Firmware Version")
+FlowControlBtn1 := TUtilGui.Add("Button","Hidden1 ", "Browse")
+FlowControlBtn1.OnEvent("Click", OpenFiledialogFlowControl)
+
+FlowControlArrayID := ["0x22"]
+
+FlowControlText3 := TUtilGui.Add("Text","Hidden1 ", "Choose an FlowControl Node")
+ChooseFlowControlFWIns := TUtilGui.AddDropDownList("Hidden1 W160", FlowControlArrayID)
+ChooseFlowControlFWIns.OnEvent("Change", EnableFlowControlBTN)
+
+EnableFlowControlBTN(*){
+    if ChooseFlowControlFWIns == "" {
+
+    }
+    if ChooseFlowControlFWIns != "" {
+        FlowControlBtn2.Enabled := true
+    }
+}
+
+;Install FW to FlowControl Node
+FlowControlText4 := TUtilGui.Add("Text","Hidden1 ", "Install Firmware to FlowControl Node")
+
+FlowControlBtn2 := TUtilGui.Add("Button","Hidden1 Disabled1", "Install")
+FlowControlBtn2.OnEvent("Click", InstallFWFlowControl)
+
+FlowControlGroupBox2 := TUtilGui.Add("GroupBox","Hidden1 x280 y300 H180 W250")
+
+;Access FlowControl NOde
+FlowControlText5 := TUtilGui.Add("Text","Hidden1 x290 y300", "Go to Access FlowControl Node Menu")
+FlowControlBtn3 := TUtilGui.Add("Button", "Hidden1 " ,"Go To Menu")
+FlowControlBtn3.OnEvent("Click", FlowControlMenu)
+
+;Rescan of FlowControl Nodes CAN IDs
+FlowControlText6 := TUtilGui.Add("Text","Hidden1 ", "Rescan Nodes If Necessecary")
+FlowControlBtn4 := TUtilGui.Add("Button","Hidden1 Disabled1 ", "Rescan")
+FlowControlBtn4.OnEvent("Click", PingNodes)
+
+FlowControlBtn5 := TUtilGui.Add("Button","Hidden1 Disabled1 x370 y381", "Re-Initialize PCAN")
+FlowControlBtn5.OnEvent("Click", PCANReinitialize)
+
+FlowControlText7 := TUtilGui.Add("Text","Hidden1 x290 y420", "Choose FlowControl")
+FlowControlAccess := TUtilGui.AddDropDownList("Hidden1 Disabled1 W160", FlowControlArrayID)
+FlowControlAccess.OnEvent("Change", UseFlowControlID)
+
+FlowControlGroupBox3 := TUtilGui.Add("GroupBox","Hidden1 x640 y35 W220 H170")
+
+FlowControlText8 := TUtilGui.Add("Text","Hidden1 x650 y39" , "Check Current Settings")
+FlowControlBtn6 := TUtilGui.Add("Button","Hidden1 ","Check")
+FlowControlBtn6.OnEvent("Click", CheckCal)
+
+FlowControlText9 := TUtilGui.Add("Text","Hidden1 " , "Check Calibration Table")
+FlowControlBtn7 := TUtilGui.Add("Button","Hidden1 ","Check")
+FlowControlBtn7.OnEvent("Click", CheckSet)
+
+FlowControlCheckBox3 := TUtilGui.Add("Checkbox","Hidden1", "Change FlowControl Settings?")
+FlowControlCheckBox3.OnEvent("Click", FlowControlCheckBoxEvent3)
+
+FlowControlCheckBox4 := TUtilGui.Add("Checkbox","Hidden1 ", "Update IDs?")
+FlowControlCheckBox4.OnEvent("Click", FlowControlCheckBoxEvent4)
+
+FlowControlGroupBox4 :=TUtilGui.Add("GroupBox","Hidden1 x640 y246 W200 H70")
+
+FlowControlGroupBox5 := TUtilGui.Add("GroupBox","Hidden1 x870 y35 W330 H130")
+
+;Text for IDs
+FlowControlText10 := TUtilGui.Add("Text","Hidden1 x880 y60", "Update Altus/Board ID")
+FlowControlText11 := TUtilGui.Add("Text","Hidden1", "Update Tool ID")
+
+;Input edit box for IDs
+FlowControlText12 := TUtilGui.Add("Text","Hidden1 x1030 y39","Input FlowControl IDs")
+FlowControlAltusID := TUtilGui.Add("Edit","Hidden1 x1030 y60")
+FlowControlToolID := TUtilGui.Add("Edit","Hidden1")
+
+FlowControlAltusID.SetFont("cBlack")
+FlowControlToolID.SetFont("cBlack")
+
+FlowControlIdBtn := TUtilGui.Add("Button","Hidden1", "Update IDs")
+FlowControlIdBtn.OnEvent("Click", UpdateFlowControlIDs)
+
+FlowControlAltusID.OnEvent("Focus", FlowControlBtnFocus)
+FlowControlAltusID.OnEvent("LoseFocus", FlowControlBtnUnFocus)
+
+FlowControlToolID.OnEvent("Focus", FlowControlBtnFocus)
+FlowControlToolID.OnEvent("LoseFocus", FlowControlBtnUnFocus)
+
+
+
+FlowControlCheckBoxEvent1(*){
+    if FlowControlCheckBox1.Value == "1" {
+        FlowControlFWVisibleStateShow
+        FlowControlCheckBox2.Value := "0"
+        FlowControlCheckBoxEvent2
+    }
+    else if FlowControlCheckBox1.Value == "0" {
+        FlowControlFWVisibleStateHide
+        ChooseFlowControlFWIns.Choose 0
+    }
+}
+
+FlowControlCheckBoxEvent2(*){
+    if FlowControlCheckBox2.Value == "1" {
+        FlowControlMenuVisibleStateShow
+        FlowControlCheckBox1.Value := "0"
+        FlowControlCheckBoxEvent1
+    }
+    else if FlowControlCheckBox2.Value == "0" {
+        FlowControlMenuVisibleStateHide
+        FlowControlAccess.Choose 0
+    }
+}
+
+FlowControlCheckBoxEvent3(*){
+    if FlowControlCheckBox3.Value == "1" {
+        FlowControlChangeVisibleStateShow
+        FlowControlCheckBox4.Value := "0"
+        FlowControlIDVisibleStateHide
+    }
+    else if FlowControlCheckBox3.Value == "0" {
+        FlowControlChangeVisibleStateHide
+    }
+}
+
+FlowControlCheckBoxEvent4(*){
+    if FlowControlCheckBox4.Value == "1" {
+        FlowControlIDVisibleStateShow
+        FlowControlCheckBox3.Value := "0"
+        FlowControlChangeVisibleStateHide
+    }
+    else if FlowControlCheckBox4.Value == "0" {
+        FlowControlIDVisibleStateHide
+    }
+}
+
+
+
+FlowControlFWVisibleStateShow(*){
+    FlowControlGroupBox1.Visible := true
+    FlowControlText1.Visible := true
+    FlowControlFW.Visible := true
+    FlowControlText2.Visible := true
+    FlowControlBtn1.Visible := true
+    FlowControlText3.Visible := true
+    ChooseFlowControlFWIns.Visible := true
+    FlowControlText4.Visible := true
+    FlowControlBtn2.Visible := true
+
+}
+FlowControlMenuVisibleStateShow(*){
+    FlowControlGroupBox2.Visible := true
+    FlowControlText5.Visible := true
+    FlowControlBtn3.Visible := true
+    FlowControlText6.Visible := true
+    FlowControlBtn4.Visible := true
+    FlowControlBtn5.Visible := true
+    FlowControlText7.Visible := true
+    FlowControlAccess.Visible := true
+
+}
+FlowControlCheckVisibleStateShow(*){
+    FlowControlGroupBox3.Visible := true
+    FlowControlText8.Visible := true
+    FlowControlBtn6.Visible := true
+    FlowControlText9.Visible := true
+    FlowControlBtn7.Visible := true
+    ;Remove when in use\ FlowControlCheckBox3.Visible := true
+    FlowControlCheckBox4.Visible := true
+}
+FlowControlChangeVisibleStateShow(*){
+
+}
+FlowControlIDVisibleStateShow(*){
+    FlowControlGroupBox5.Visible := true
+    FlowControlText10.Visible := true
+    FlowControlText11.Visible := true
+    FlowControlText12.Visible := true
+    FlowControlAltusID.Visible := true
+    FlowControlToolID.Visible := true
+    FlowControlIdBtn.Visible := true
+}
+FlowControlAllVisibleStateShow(*){
+    FlowControlFWVisibleStateShow
+    FlowControlIDVisibleStateShow
+    FlowControlMenuVisibleStateShow
+    FlowControlCheckVisibleStateShow
+    FlowControlChangeVisibleStateShow
+
+}
+FlowControlAllVisibleStateHide(*){
+    FlowControlFWVisibleStateHide
+    FlowControlIDVisibleStateHide
+    FlowControlMenuVisibleStateHide
+    FlowControlCheckVisibleStateHide
+    FlowControlChangeVisibleStateHide
+
+}
+FlowControlFWVisibleStateHide(*){
+    FlowControlGroupBox1.Visible := false
+    FlowControlText1.Visible := false
+    FlowControlFW.Visible := false
+    FlowControlText2.Visible := false
+    FlowControlBtn1.Visible := false
+    FlowControlText3.Visible := false
+    ChooseFlowControlFWIns.Visible := false
+    FlowControlText4.Visible := false
+    FlowControlBtn2.Visible := false
+    FlowControlBtn2.Enabled := false
+}
+FlowControlMenuVisibleStateHide(*){
+    FlowControlGroupBox2.Visible := false
+    FlowControlText5.Visible := false
+    FlowControlBtn3.Visible := false
+    FlowControlText6.Visible := false
+    FlowControlBtn4.Visible := false
+    FlowControlBtn5.Visible := false
+    FlowControlText7.Visible := false
+    FlowControlAccess.Visible := false
+}
+FlowControlCheckVisibleStateHide(*){
+    FlowControlGroupBox3.Visible := false
+    FlowControlText8.Visible := false
+    FlowControlBtn6.Visible := false
+    FlowControlText9.Visible := false
+    FlowControlBtn7.Visible := false
+    FlowControlCheckBox3.Visible := false
+    FlowControlCheckBox4.Visible := false
+}
+FlowControlChangeVisibleStateHide(*){
+
+}
+FlowControlIDVisibleStateHide(*){
+    FlowControlGroupBox5.Visible := false
+    FlowControlText10.Visible := false
+    FlowControlText11.Visible := false
+    FlowControlText12.Visible := false
+    FlowControlAltusID.Visible := false
+    FlowControlToolID.Visible := false
+    FlowControlIdBtn.Visible := false
+}
 
 
 ;----------------------------------------------------------------
@@ -2321,6 +3107,10 @@ RestartTestUtil(*){
     AnchorBoardToolID.Value := ""
     OrientationAltusID.Value := ""
     OrientationToolID.Value := ""
+    EnvironmentAltusID.Value := ""
+    EnvironmentToolID.Value := ""
+    FlowControlAltusID.Value := ""
+    FlowControlToolID.Value := ""
 
     MCVisibleStateHide()
     DCDCVisibleStateHide()
@@ -2328,9 +3118,11 @@ RestartTestUtil(*){
     SolAllVisibleStateHide
     TCAllVisibleStateHide
     OneWireAllVisibleStateHide
+    RSSAllVisibleStateHide
     AnchorAllVisibleStateHide
     OrientationAllVisibleStateHide
-
+    EnvironmentAllVisibleStateHide
+    FlowControlAllVisibleStateHide
 
     SolCheckMark1.Value := "0"
     SolCheckMark2.Value := "0"
@@ -2338,51 +3130,106 @@ RestartTestUtil(*){
     SolCheckMark4.Value := "0"
     SolCheckMark5.Value := "0"
     SolRadioBtn1.Value := "1"
+    SolCheckMark4.Visible := true
+    SolCheckMark5.Visible := true
 
     TCCheckBox1.Value := "0"
     TCCheckBox2.Value := "0"
     TCCheckBox3.Value := "0"
     TCCheckBox4.Value := "0"
     TCCheckBox5.Value := "0"
+    TCCheckBox1.Visible := true
+    TCCheckBox2.Visible := true
 
     OneWireCheckBox1.Value := "0"
     OneWireCheckBox2.Value := "0"
     OneWireCheckBox3.Value := "0"
     OneWireCheckBox4.Value := "0"
+    OneWireCheckBox1.Visible := true
+    OneWireCheckBox2.Visible := true
 
     RSSCheckBox1.Value := "0"
     RSSCheckBox2.Value := "0"
     RSSCheckBox3.Value := "0"
     RSSCheckBox4.Value := "0"
+    RSSCheckBox1.Visible := true
+    RSSCheckBox2.Visible := true
 
     AnchorCheckBox1.Value := "0"
     AnchorCheckBox2.Value := "0"
     AnchorCheckBox3.Value := "0"
     AnchorCheckBox4.Value := "0"
+    AnchorCheckBox1.Visible := true
+    AnchorCheckBox2.Visible := true
 
     OrientationCheckBox1.Value := "0"
     OrientationCheckBox2.Value := "0"
     OrientationCheckBox3.Value := "0"
     OrientationCheckBox4.Value := "0"
+    OrientationCheckBox1.Visible := true
+    OrientationCheckBox2.Visible := true
+
+    EnvironmentCheckBox1.Value := "0"
+    EnvironmentCheckBox2.Value := "0"
+    EnvironmentCheckBox3.Value := "0"
+    EnvironmentCheckBox4.Value := "0"
+    EnvironmentCheckBox1.Visible := true
+    EnvironmentCheckBox2.Visible := true
+
+    FlowControlCheckBox1.Value := "0"
+    FlowControlCheckBox2.Value := "0"
+    FlowControlCheckBox3.Value := "0"
+    FlowControlCheckBox4.Value := "0"
+    FlowControlCheckBox1.Visible := true
+    FlowControlCheckBox2.Visible := true
 
     SolBtn4.Enabled := false
     SolBtn5.Enabled := false
     SolenoidAccess.Enabled := false
+    SolBtn2.Enabled := false
+    SolBtn3.Enabled := true
+
     TCBtn4.Enabled := false
     TCBtn5.Enabled := false
     TCAccess.Enabled := false
+    TCBtn2.Enabled := false
+    TCBtn3.Enabled := true
+
     OneWireBtn4.Enabled := false
     OneWireBtn5.Enabled := false
     OneWireMasterAccess.Enabled := false
+    OneWireBtn2.Enabled := false
+    OneWireBtn3.Enabled := true
+
     RSSBtn4.Enabled := false
     RSSBtn5.Enabled := false
     RSSAccess.Enabled := false
+    RSSBtn2.Enabled := false
+    RSSBtn3.Enabled := true
+
     AnchorBtn4.Enabled := false
     AnchorBtn5.Enabled := false
     AnchorBoardAccess.Enabled := false
+    AnchorBtn2.Enabled := false
+    AnchorBtn3.Enabled := true
+
     OrientationBtn4.Enabled := false
     OrientationBtn5.Enabled := false
     OrientationAccess.Enabled := false
+    OrientationBtn2.Enabled := false
+    OrientationBtn3.Enabled := true
+
+    EnvironmentBtn4.Enabled := false
+    EnvironmentBtn5.Enabled := false
+    EnvironmentAccess.Enabled := false
+    EnvironmentBtn2.Enabled := false
+    EnvironmentBtn3.Enabled := true
+
+    FlowControlBtn4.Enabled := false
+    FlowControlBtn5.Enabled := false
+    FlowControlAccess.Enabled := false
+    FlowControlBtn2.Enabled := false
+    FlowControlBtn3.Enabled := true
 
     COMPort.Enabled := false
     Refresh.Enabled := false
@@ -2396,6 +3243,23 @@ RestartTestUtil(*){
     RefreshAnchorBoard.Enabled := false
     OrientationCOMPort.Enabled := false
     RefreshOrientation.Enabled := false
+    EnvironmentCOMPort.Enabled := false
+    RefreshEnvironment.Enabled := false
+    FlowControlCOMPort.Enabled := false
+    RefreshFlowControl.Enabled := false
+
+    ComChoice.Enabled := true
+    FlowControlComChoice.Enabled := true
+    AnchorBoardComChoice.Enabled := true
+    EnvironmentComChoice.Enabled := true
+    OrientationComChoice.Enabled := true
+    OneWireMasterComChoice.Enabled := true
+    TCComChoice.Enabled := true
+    QTComChoice.Enabled := true
+    RefreshQT.Enabled := true
+    QTCOMPort.Enabled := true
+    BoardChoice.Enabled := true
+    RSSComChoice.Enabled := true
 
     QTComChoice.Choose 1
     QTCOMPort.Choose 0
@@ -2415,10 +3279,12 @@ RestartTestUtil(*){
     OneWireMasterCOMPort.Choose 0
     OneWireMasterComChoice.Choose 1
     OneWireMasterAccess.Choose 0
+    OneWireDDL1.Choose 0
     RSSCOMPort.Choose 0
     RSSComChoice.Choose 1
     RSSAccess.Choose 0
     ChooseRSSFWIns.Choose 0
+    RSSUsage.Choose 0
     AnchorBoardCOMPort.Choose 0
     AnchorBoardComChoice.Choose 1
     AnchorBoardAccess.Choose 0
@@ -2427,6 +3293,16 @@ RestartTestUtil(*){
     OrientationCOMPort.Choose 0
     OrientationComChoice.Choose 1
     OrientationAccess.Choose 0
+    ChooseOrientationFWIns.Choose 0
+    EnvironmentCOMPort.Choose 0
+    EnvironmentComChoice.Choose 1
+    EnvironmentAccess.Choose 0
+    ChooseEnvironmentFWIns.Choose 0
+    FlowControlCOMPort.Choose 0
+    FlowControlComChoice.Choose 1
+    FlowControlAccess.Choose 0
+    ChooseFlowControlFWIns.Choose 0
+
 
     WinMove(0,0,,, "ahk_exe tkToolUtility.exe")
     Sleep 200
@@ -2462,9 +3338,16 @@ InstallSolenoidEz(*){
     Solenoidenter()
     SendKeystrokeFromListbox()
     Keystroke1()
+    SolBtn3.Enabled := false
     SolBtn4.Enabled := true
     SolBtn5.Enabled := true
+    ComChoice.Enabled := false
+    COMPort.Enabled := false
+    Refresh.Enabled := false
     SolenoidAccess.Enabled := true
+    SolCheckMark5.Value := "0"
+    SolCheckMark4.Visible := false
+    SolCheckMark5.Visible := false
     TestOption := ComChoice.Text
     switch TestOption {
         case "PCAN":
@@ -2563,6 +3446,10 @@ RBVisibleStateHide(*){
 SolCheckBoxEvent1(*){
     if(SolCheckMark1.Value == "1"){
         SolChangesVisibleStateShow
+        SolCheckMark2.Value := "0"
+        SolCheckMark3.Value := "0"
+        SolCheckBoxEvent2
+        SolCheckBoxEvent3
     }
         else if (SolCheckMark1.Value == "0"){
             SolChangesVisibleStateHide
@@ -2575,6 +3462,10 @@ SolCheckBoxEvent1(*){
 SolCheckBoxEvent2(*){
     if(SolCheckMark2.Value == "1"){
         SolSensorVisibleStateShow
+        SolCheckMark1.Value := "0"
+        SolCheckMark3.Value := "0"
+        SolCheckBoxEvent1
+        SolCheckBoxEvent3
     }
         else if (SolCheckMark2.Value == "0"){
             SolSensorVisibleStateHide
@@ -2589,6 +3480,10 @@ SolCheckBoxEvent2(*){
 SolCheckBoxEvent3(*){
     if(SolCheckMark3.Value == "1"){
         SolIDVisibleStateShow
+        SolCheckMark1.Value := "0"
+        SolCheckMark2.Value := "0"
+        SolCheckBoxEvent1
+        SolCheckBoxEvent2
     }
         else if (SolCheckMark3.Value == "0"){
             SolIDVisibleStateHide
@@ -2599,6 +3494,8 @@ SolCheckBoxEvent3(*){
 SolCheckBoxEvent4(*){
     if(SolCheckMark4.Value == "1"){
         SolFWVisibleStateShow
+        SolCheckMark5.Value := "0"
+        SolCheckBoxEvent5
     }
         else if (SolCheckMark4.Value == "0"){
             SolFWVisibleStateHide
@@ -2610,6 +3507,8 @@ SolCheckBoxEvent4(*){
 SolCheckBoxEvent5(*){
     if(SolCheckMark5.Value == "1"){
         SolMenuVisibleStateShow
+        SolCheckMark4.Value := "0"
+        SolCheckBoxEvent4
     }
         else if (SolCheckMark5.Value == "0"){
             SolMenuVisibleStateHide
@@ -2709,12 +3608,17 @@ SolVisibleStateShow(*){
     SolCheckMark1.Visible := true
     SolCheckMark2.Visible := true
     SolCheckMark3.Visible := true
+}
 
+SolElLabStateShow(*){
     SolGroupBox4.Visible := true
     SolText12.Visible := true
     SolText13.Visible := true
     SolBtn8.Visible := true
+}
 
+SolElLabBtnShow(*){
+    SolElLabAccessBtn.Visible := true
 }
 
 SolFWVisibleStateHide(*){
@@ -2727,6 +3631,7 @@ SolFWVisibleStateHide(*){
     ChooseSolFWIns.Visible := false
     SolText4.Visible := false
     SolBtn2.Visible := false
+    SolBtn2.Enabled := false
 }
 
 SolChangesVisibleStateHide(*){
@@ -2798,32 +3703,40 @@ SolIDVisibleStateHide(*){
     SolUpdateIDBtn.Visible := false
 }
 
+SolElLabStateHide(*){
+    SolGroupBox4.Visible := false
+    SolText12.Visible := false
+    SolText13.Visible := false
+    SolBtn8.Visible := false
+}
+
+SolVisibleStateHide(*){
+    SolGroupBox3.Visible := false
+    SolText10.Visible := false
+    SolBtn6.Visible := false
+    SolText11.Visible := false
+    SolBtn7.Visible := false
+    SolCheckMark1.Visible := false
+    SolCheckMark2.Visible := false
+    SolCheckMark3.Visible := false
+}
+
+SolElLabBtnHide(*){
+    SolElLabAccessBtn.Visible := false
+}
+
 SolAllVisibleStateHide(*){
     SolFWVisibleStateHide
     SolSensorBtnVisibleStateHide
     SolMenuVisibleStateHide
     SolSensorQuadVisibleStateHide
     SolSensorLinearVisibleStateHide
-
-    SolGroupBox3.Visible := false
+    SolElLabStateHide
+    SolVisibleStateHide
     SolChangesVisibleStateHide
-    SolText10.Visible := false
-    SolBtn6.Visible := false
-    SolText11.Visible := false
-    SolBtn7.Visible := false
-
-    SolGroupBox4.Visible := false
-    SolText12.Visible := false
-    SolText13.Visible := false
-    SolBtn8.Visible := false
-
-    SolCheckMark1.Visible := false
-    SolCheckMark3.Visible := false
-    SolCheckMark2.Visible := false
-
     SolSensorVisibleStateHide
     SolIDVisibleStateHide
-
+    SolElLabBtnHide
 }
 
 SolAllVisibleStateShow(*){
@@ -2831,29 +3744,32 @@ SolAllVisibleStateShow(*){
     SolMenuVisibleStateShow
     SolSensorQuadVisibleStateShow
     SolSensorLinearVisibleStateShow
-
-    SolGroupBox3.Visible := true
+    SolElLabStateShow
+    SolVisibleStateShow
     SolChangesVisibleStateShow
-    SolText10.Visible := true
-    SolBtn6.Visible := true
-    SolText11.Visible := true
-    SolBtn7.Visible := true
-
-    SolGroupBox4.Visible := true
-    SolText12.Visible := true
-    SolText13.Visible := true
-    SolBtn8.Visible := true
-
-    SolCheckMark1.Visible := true
-    SolCheckMark3.Visible := true
-    SolCheckMark2.Visible := true
-
     SolSensorVisibleStateShow
     SolIDVisibleStateShow
-
+    SolElLabBtnShow
 }
     
-
+AccessElLab(*){
+    ELLabPrompt := InputBox("Please enter the password", "El Lab Access Prompt", "H100 W200 T20 Password*")
+    if ELLabPrompt.Result == "OK" {
+        if ELLabPrompt.Value == "1234"{
+            SolElLabBtnHide
+            SolElLabStateShow
+            MsgBox "Friendly reminder that this will not work with V40.33"
+        }
+        else {
+            MsgBox "Wrong Password, Try Again"
+            AccessElLab
+        }
+    }
+    if ELLabPrompt.Result == "Timeout"{
+        MsgBox "Too slow, timed out"
+    }
+    
+}
 
 QTCOMPortSelect(*){
     ControlSend  QTCOMPort.Text ,, "tkToolUtility.exe"
@@ -2876,6 +3792,10 @@ QTCOMPortSelect(*){
 }
 
 BoardSelect(*){
+    QTComChoice.Enabled := false
+    QTCOMPort.Enabled := false
+    RefreshQT.Enabled := false
+    BoardChoice.Enabled := false
     SelectedBoard := BoardChoice.Text
     Switch SelectedBoard{
         Case "Master Controller" :
@@ -3121,6 +4041,8 @@ ChangeComDDL(*){
     SelectedOptionRSS := RSSComChoice.Text
     SelectedOptionAnchor := AnchorBoardComChoice.Text
     SelectedOptionOrientation := OrientationComChoice.Text
+    SelectedOptionEnvironment := EnvironmentComChoice.Text
+    SelectedOptionFlowControl := FlowControlComChoice.Text
 
     switch SelectedOption {
         case "PCAN":
@@ -3193,6 +4115,28 @@ ChangeComDDL(*){
             RefreshOrientation.Enabled := true
             OrientationCOMPort.Enabled := true
         }
+    Switch SelectedOptionEnvironment {
+        case "PCAN":
+            RefreshEnvironment.Enabled := false
+            EnvironmentCOMPort.Enabled := false
+        case "QPSK/MasterBox":
+            RefreshEnvironment.Enabled := true
+            EnvironmentCOMPort.Enabled := true
+        case "OFDM":
+            RefreshEnvironment.Enabled := true
+            EnvironmentCOMPort.Enabled := true
+        }
+    Switch SelectedOptionFlowControl {
+        case "PCAN":
+            RefreshFlowControl.Enabled := false
+            FlowControlCOMPort.Enabled := false
+        case "QPSK/MasterBox":
+            RefreshFlowControl.Enabled := true
+            FlowControlCOMPort.Enabled := true
+        case "OFDM":
+            RefreshFlowControl.Enabled := true
+            FlowControlCOMPort.Enabled := true
+        }
 }
 
 
@@ -3229,8 +4173,6 @@ TCCOMPortSelect(*){
     ControlSend "{Enter}", , "tkToolUtility.exe"
 }
 
-
-
 PingNodes(*){
     Keystroke3()
     Sleep 500
@@ -3261,46 +4203,34 @@ SolenoidIDs(*){
     Sleep 250
     Switch SolenoidIDAccess {
         case "FlexDrive - 0x12": 
-        SolVisibleStateShow
         Keystroke2()
-        Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
         case "MotorPump - 0x13":
-        SolVisibleStateShow
         Keystroke3()
-        Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
         case "CompactTracMP - 0x13":
-        SolVisibleStateShow
         Keystroke3()
-        Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
         case "SJR - 0x14":
-        SolVisibleStateShow
         Keystroke4()
-        Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
         case "PrimeStroker - 0x15":
-        SolVisibleStateShow
         Keystroke5()
-        Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
         case "ShortStroker - 0x15":
-        SolVisibleStateShow  
         Keystroke5()
-        Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
         case "ShortStrokerV2 - 0x15":
-        SolVisibleStateShow
         Keystroke5()
-        Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
         case "Puncher - 0x16":
-        SolVisibleStateShow 
         Keystroke6()
-        Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
 }
+SolVisibleStateShow
+SolMenuVisibleStateHide
+SolElLabBtnShow
+
 }
     
 
@@ -3394,9 +4324,6 @@ InstallFWSolenoid(*){
         case "QPSK/MasterBox":
         Keystroke3()
         Sleep 100
-        ;ControlSend  "{C}", , "tkToolUtility.exe"
-       ; ControlSend  "{O}", , "tkToolUtility.exe"
-        ;ControlSend  "{M}", , "tkToolUtility.exe"
         ControlSend  COMPort.Text ,, "tkToolUtility.exe"
         Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
@@ -3544,7 +4471,7 @@ SolenoidUsage(*){
         Sleep 200
         ControlSend  "{y}", , "tkToolUtility.exe"
     }
-
+SolenoidUse.Choose 0
 }
 
 SolenoidSensorTypesCompactStroker(*){
@@ -3601,8 +4528,8 @@ SensorTypeChange(*){
             Hex0xCB()
             Sleep 200
             ControlSend  "{y}", , "tkToolUtility.exe"
-
 }
+SensorType.Choose 0
 }
 
 SolInputValueEnter(*){
@@ -3613,81 +4540,116 @@ SolInputValueEnter(*){
     SolInput.Value := ""
 }
 
+SensorInputShow(*){
+    SelectedSensorIDshow := SolenoidSensorsDropDownList.Text
+    switch SelectedSensorIDshow {
+        case "DDP3 '9a' Linear":
+            SolSensorLinearVisibleStateShow
+            SolSensorQuadVisibleStateHide
+
+        case "DDP3 '9b' Linear":
+            SolSensorLinearVisibleStateShow
+            SolSensorQuadVisibleStateHide
+
+        case "Comp '10' Linear":
+            SolSensorLinearVisibleStateShow
+            SolSensorQuadVisibleStateHide
+
+        Case "AncUpper '13a' Quad":
+            SolSensorLinearVisibleStateHide
+            SolSensorQuadVisibleStateShow
+
+        Case "AncLower '13b' Quad":
+            SolSensorLinearVisibleStateHide
+            SolSensorQuadVisibleStateShow
+
+        Case "DDP3 'P-Sa' Linear":
+            SolSensorLinearVisibleStateShow
+            SolSensorQuadVisibleStateHide
+
+        Case "DDP3 'P-Sb' Linear":
+            SolSensorLinearVisibleStateShow
+            SolSensorQuadVisibleStateHide
+
+        Case "DDP3 'P-LF' Linear":
+            SolSensorLinearVisibleStateShow
+            SolSensorQuadVisibleStateHide
+            
+        Case "DDP500 'P-Comp' Linear":
+            SolSensorLinearVisibleStateShow
+            SolSensorQuadVisibleStateHide
+
+        Case "DDP3 'P-TW' Linear":
+            SolSensorLinearVisibleStateShow
+            SolSensorQuadVisibleStateHide
+
+        Case "AncUpper 'P-Ga' Quad":
+            SolSensorLinearVisibleStateHide
+            SolSensorQuadVisibleStateShow
+
+        Case "AncLower 'P-Gb' Quad":
+            SolSensorLinearVisibleStateHide
+            SolSensorQuadVisibleStateShow
+
+        Case "":
+            SolSensorLinearVisibleStateHide
+            SolSensorQuadVisibleStateHide
+            SolSensorBtnVisibleStateHide
+
+}
+}
+
 SensorIDs(*){
     Hex0xFA()
     Sleep 200
     SelectedSensorIDs := SolenoidSensorsDropDownList.Text
     switch SelectedSensorIDs {
         case "DDP3 '9a' Linear":
-            SolSensorLinearVisibleStateShow
-            SolSensorQuadVisibleStateHide
             Keystroke1()
             Sleep 100
             Keystroke1()
         case "DDP3 '9b' Linear":
-            SolSensorLinearVisibleStateShow
-            SolSensorQuadVisibleStateHide
             Keystroke2()
             Sleep 100
             Keystroke1()
         case "Comp '10' Linear":
-            SolSensorLinearVisibleStateShow
-            SolSensorQuadVisibleStateHide
             Keystroke3()
             Sleep 100
             Keystroke1()
         Case "AncUpper '13a' Quad":
-            SolSensorLinearVisibleStateHide
-            SolSensorQuadVisibleStateShow
             Keystroke4()
             Sleep 100
             Keystroke2()
         Case "AncLower '13b' Quad":
-            SolSensorLinearVisibleStateHide
-            SolSensorQuadVisibleStateShow
             Keystroke5()
             Sleep 100
             Keystroke2()
 
         Case "DDP3 'P-Sa' Linear":
-            SolSensorLinearVisibleStateShow
-            SolSensorQuadVisibleStateHide
             Keystroke1()
             Sleep 100
             Keystroke1()
         Case "DDP3 'P-Sb' Linear":
-            SolSensorLinearVisibleStateShow
-            SolSensorQuadVisibleStateHide
             Keystroke2()
             Sleep 100
             Keystroke1()
         Case "DDP3 'P-LF' Linear":
-            SolSensorLinearVisibleStateShow
-            SolSensorQuadVisibleStateHide
             Keystroke3()
             Sleep 100
             Keystroke1()
         Case "DDP500 'P-Comp' Linear":
-            SolSensorLinearVisibleStateShow
-            SolSensorQuadVisibleStateHide
             Keystroke4()
             Sleep 100
             Keystroke1()
         Case "DDP3 'P-TW' Linear":
-            SolSensorLinearVisibleStateShow
-            SolSensorQuadVisibleStateHide
             Keystroke5()
             Sleep 100
             Keystroke1()
         Case "AncUpper 'P-Ga' Quad":
-            SolSensorLinearVisibleStateHide
-            SolSensorQuadVisibleStateShow
             Keystroke6()
             Sleep 100
             Keystroke2()
         Case "AncLower 'P-Gb' Quad":
-            SolSensorLinearVisibleStateHide
-            SolSensorQuadVisibleStateShow
             Keystroke7()
             Sleep 100
             Keystroke2()
@@ -3706,12 +4668,8 @@ UpdateSensorValues(*){
         case "DDP3 '9a' Linear":
             if (Sensorm.Value != "" && Sensorb.Value != "")
             {
-                ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
-                Sleep 100
-                ControlSend  "{Space}", , "tkToolUtility.exe"
-                ControlSend  Sensorb.Value ,, "tkToolUtility.exe"
-                Sleep 100
-                ControlSend  "{Enter}", , "tkToolUtility.exe"
+                SensorIDs
+                ControlSend  Sensorm.Value "{Space}" Sensorb.Value "{Enter}",, "tkToolUtility.exe"
                 Sleep 300
                 Hex0xCD()
                 Sleep 100
@@ -3721,12 +4679,8 @@ UpdateSensorValues(*){
         case "DDP3 '9b' Linear":
         if (Sensorm.Value != "" && Sensorb.Value != "")
         {
-            ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  Sensorb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            SensorIDs
+            ControlSend  Sensorm.Value "{Space}" Sensorb.Value "{Enter}",, "tkToolUtility.exe"
             Sleep 300
             Hex0xCD()
             Sleep 100
@@ -3736,38 +4690,18 @@ UpdateSensorValues(*){
         case "Comp '10' Linear":
         if (Sensorm.Value != "" && Sensorb.Value != "")
             {
-            ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  Sensorb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Enter}", , "tkToolUtility.exe"
-            Sleep 300
-            Hex0xCD()
-            Sleep 100
-            ControlSend  "{y}", , "tkToolUtility.exe"
+                SensorIDs
+                ControlSend  Sensorm.Value "{Space}" Sensorb.Value "{Enter}",, "tkToolUtility.exe"
+                Sleep 300
+                Hex0xCD()
+                Sleep 100
+                ControlSend  "{y}", , "tkToolUtility.exe"
         }
         Case "AncUpper '13a' Quad":
         if (SensorCb.Value != "" && SensorCm.Value != "" && SensorBb.Value != "" && SensorBm.Value != "" && SensorAb.Value != "" && SensorAm.Value != "")
         {
-            ControlSend  SensorCb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorCm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorBb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorBm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorAb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorAm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            SensorIDs
+            ControlSend  SensorCb.Value "{Space}" SensorCm.Value "{Space}" SensorBb.Value "{Space}" SensorBm.Value "{Space}" SensorAb.Value "{Space}" SensorAm.Value "{Enter}",, "tkToolUtility.exe"
             Sleep 300
             Hex0xCD()
             Sleep 100
@@ -3777,24 +4711,8 @@ UpdateSensorValues(*){
         Case "AncLower '13b' Quad":
         if (SensorCb.Value != "" && SensorCm.Value != "" && SensorBb.Value != "" && SensorBm.Value != "" && SensorAb.Value != "" && SensorAm.Value != "")
         {
-            ControlSend  SensorCb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorCm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorBb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorBm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorAb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorAm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            SensorIDs
+            ControlSend  SensorCb.Value "{Space}" SensorCm.Value "{Space}" SensorBb.Value "{Space}" SensorBm.Value "{Space}" SensorAb.Value "{Space}" SensorAm.Value "{Enter}",, "tkToolUtility.exe"
             Sleep 300
             Hex0xCD()
             Sleep 100
@@ -3804,12 +4722,8 @@ UpdateSensorValues(*){
         Case "DDP3 'P-Sa' Linear":
         if (Sensorm.Value != "" && Sensorb.Value != "")
         {
-            ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  Sensorb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            SensorIDs
+            ControlSend  Sensorm.Value "{Space}" Sensorb.Value "{Enter}",, "tkToolUtility.exe"
             Sleep 300
             Hex0xCD()
             Sleep 100
@@ -3819,12 +4733,8 @@ UpdateSensorValues(*){
         Case "DDP3 'P-Sb' Linear":
         if (Sensorm.Value != "" && Sensorb.Value != "")
         {
-            ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  Sensorb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            SensorIDs
+            ControlSend  Sensorm.Value "{Space}" Sensorb.Value "{Enter}",, "tkToolUtility.exe"
             Sleep 300
             Hex0xCD()
             Sleep 100
@@ -3834,12 +4744,8 @@ UpdateSensorValues(*){
         Case "DDP3 'P-LF' Linear":
         if (Sensorm.Value != "" && Sensorb.Value != "")
         {
-            ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  Sensorb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            SensorIDs
+            ControlSend  Sensorm.Value "{Space}" Sensorb.Value "{Enter}",, "tkToolUtility.exe"
             Sleep 300
             Hex0xCD()
             Sleep 100
@@ -3849,12 +4755,8 @@ UpdateSensorValues(*){
         Case "DDP500 'P-Comp' Linear":
         if (Sensorm.Value != "" && Sensorb.Value != "")
         {
-            ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  Sensorb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            SensorIDs
+            ControlSend  Sensorm.Value "{Space}" Sensorb.Value "{Enter}",, "tkToolUtility.exe"
             Sleep 300
             Hex0xCD()
             Sleep 100
@@ -3864,12 +4766,8 @@ UpdateSensorValues(*){
         Case "DDP3 'P-TW' Linear":
         if (Sensorm.Value != "" && Sensorb.Value != "")
         {
-            ControlSend  Sensorm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  Sensorb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            SensorIDs
+            ControlSend  Sensorm.Value "{Space}" Sensorb.Value "{Enter}",, "tkToolUtility.exe"
             Sleep 300
             Hex0xCD()
             Sleep 100
@@ -3879,24 +4777,8 @@ UpdateSensorValues(*){
         Case "AncUpper 'P-Ga' Quad":
         if (SensorCb.Value != "" && SensorCm.Value != "" && SensorBb.Value != "" && SensorBm.Value != "" && SensorAb.Value != "" && SensorAm.Value != "")
         {
-            ControlSend  SensorCb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorCm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorBb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorBm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorAb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorAm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            SensorIDs
+            ControlSend  SensorCb.Value "{Space}" SensorCm.Value "{Space}" SensorBb.Value "{Space}" SensorBm.Value "{Space}" SensorAb.Value "{Space}" SensorAm.Value "{Enter}",, "tkToolUtility.exe"
             Sleep 300
             Hex0xCD()
             Sleep 100
@@ -3906,24 +4788,8 @@ UpdateSensorValues(*){
         Case "AncLower 'P-Gb' Quad":
         if (SensorCb.Value != "" && SensorCm.Value != "" && SensorBb.Value != "" && SensorBm.Value != "" && SensorAb.Value != "" && SensorAm.Value != "")
         {
-            ControlSend  SensorCb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorCm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorBb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorBm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorAb.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Space}", , "tkToolUtility.exe"
-            ControlSend  SensorAm.Value ,, "tkToolUtility.exe"
-            Sleep 100
-            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            SensorIDs
+            ControlSend  SensorCb.Value "{Space}" SensorCm.Value "{Space}" SensorBb.Value "{Space}" SensorBm.Value "{Space}" SensorAb.Value "{Space}" SensorAm.Value "{Enter}",, "tkToolUtility.exe"
             Sleep 300
             Hex0xCD()
             Sleep 100
@@ -3963,17 +4829,30 @@ Switch OneWireSelectedSensors{
             }
 
 }
+
 Sleep 500
-Sensorm.Value := ""
-Sensorb.Value := ""
-SensorCb.Value := ""
-SensorCm.Value := ""
-SensorBb.Value := ""
-SensorBm.Value := ""
-SensorAb.Value := ""
-SensorAm.Value := ""
-OneWireSensor1.Value := ""
-OneWireSensor2.Value := ""
+
+if (Sensorm.Value != "" && Sensorb.Value != ""){
+    Sleep 500
+    Sensorm.Value := ""
+    Sensorb.Value := ""
+}
+
+if (SensorCb.Value != "" && SensorCm.Value != "" && SensorBb.Value != "" && SensorBm.Value != "" && SensorAb.Value != "" && SensorAm.Value != ""){
+    Sleep 500
+    SensorCb.Value := ""
+    SensorCm.Value := ""
+    SensorBb.Value := ""
+    SensorBm.Value := ""
+    SensorAb.Value := ""
+    SensorAm.Value := ""
+}
+
+if (OneWireSensor1.Value != "" && OneWireSensor2.Value != ""){
+    Sleep 500
+    OneWireSensor1.Value := ""
+    OneWireSensor2.Value := ""
+}
 
 }
 
@@ -4151,9 +5030,6 @@ InstallFWTC(*){
         Keystroke3()
         Sleep 100
         Keystroke3()
-        ;ControlSend  "{C}", , "tkToolUtility.exe"
-        ;ControlSend  "{O}", , "tkToolUtility.exe"
-        ;ControlSend  "{M}", , "tkToolUtility.exe"
         ControlSend  TCCOMPort.Text ,, "tkToolUtility.exe"
         Sleep 200
         ControlSend  "{Enter}", , "tkToolUtility.exe"
@@ -4225,15 +5101,22 @@ ReopenAfterIns(*){
 TCMenu(*){
     Keystroke3()
     Sleep 200
+    TCBtn4.Enabled := true
+    TCBtn5.Enabled := true
+    TCAccess.Enabled := true
+    TCComChoice.Enabled := false
+    TCCOMPort.Enabled := false
+    RefreshTC.Enabled := false
+    TCBtn3.Enabled := false
+    TCCheckBox1.Visible := false
+    TCCheckBox2.Value := "0"
+    TCCheckBox2.Visible := false
     SelectedTCOption := TCComChoice.Text
     switch SelectedTCOption {
         case "PCAN":
             Keystroke1()
             Sleep 200
             Keystroke1()
-            TCBtn4.Enabled := true
-            TCBtn5.Enabled := true
-            TCAccess.Enabled := true
         case "QPSK/MasterBox":
             Keystroke2()
             Sleep 200
@@ -4243,16 +5126,10 @@ TCMenu(*){
             ControlSend  "{Enter}", , "tkToolUtility.exe"
             Sleep 200
             ControlSend  "{Enter}", , "tkToolUtility.exe"
-            TCBtn4.Enabled := true
-            TCBtn5.Enabled := true
-            TCAccess.Enabled := true
         case "OFDM":
             Keystroke3()
             Sleep 200
             Keystroke3()
-            TCBtn4.Enabled := true
-            TCBtn5.Enabled := true
-            TCAccess.Enabled := true
     }
 }
 
@@ -4260,36 +5137,32 @@ TCMenu(*){
 UseTCID(*){
     Keystroke4()
     Sleep 200
+
     SelectTC := TCAccess.Text
     Switch SelectTC{
         Case "Upper PR STR - 0x30" :
         Hex0x3()
         Sleep 100
         Keystroke0()
-        TCCheckVisibleStateShow
-
         Case "Lower PR STR - 0x31" :
         Hex0x3()
         Sleep 100
         Keystroke1()
-        TCCheckVisibleStateShow
-
         Case "Upper TC - 0x32" :
         Hex0x3()
         Sleep 100
         Keystroke2()
-        TCCheckVisibleStateShow
         Case "Lower TC - 0x33" :
         Hex0x3()
         Sleep 100
         Keystroke3()
-        TCCheckVisibleStateShow
         Case "DDR TC SJR - 0x34" :
         Hex0x3()
         Sleep 100
         Keystroke4()
-        TCCheckVisibleStateShow
     }
+    TCCheckVisibleStateShow
+    TCMenuVisibleStateHide
 }
 
 ChangeTCID(*){
@@ -4537,6 +5410,10 @@ OneWireMasterMenu(*){
     OneWireBtn4.Enabled := true
     OneWireBtn5.Enabled := true
     OneWireMasterAccess.Enabled := true
+    OneWireBtn3.Enabled := false
+    OneWireCheckBox1.Visible := false
+    OneWireCheckBox2.Visible := false
+    OneWireCheckBox2.Value := "0"
     SelectedOneWireMasterOption := OneWireMasterComChoice.Text
     switch SelectedOneWireMasterOption {
         case "PCAN":
@@ -4566,6 +5443,7 @@ UseOneWireMasterID(*){
     Switch SelectOneWireMaster{
         Case "One Wire Master - 0x3A" :
         OneWireCheckShow
+        OneWireMenuVisibleStateHide
         Hex0x3A()
         Sleep 100
         ControlSend  "{Enter}", , "tkToolUtility.exe"
@@ -4679,6 +5557,13 @@ RSSMenu(*){
     RSSBtn4.Enabled := true
     RSSBtn5.Enabled := true
     RSSAccess.Enabled := true
+    RSSBtn3.Enabled := false
+    RSSCheckBox1.Visible := false
+    RSSCheckBox2.Visible := false
+    RSSCheckBox2.Value := "0"
+    RSSComChoice.Enabled := false
+    RSSCOMPort.Enabled := false
+    RefreshRSS.Enabled := false
     SelectedRSSOption := RSSComChoice.Text
     switch SelectedRSSOption {
         case "PCAN":
@@ -4705,18 +5590,15 @@ UseRSSID(*){
     Keystroke4()
     Sleep 200
     RSSCheckVisibleStateShow
+    RSSMenuVisibleStateHide
     SelectRSS := RSSAccess.Text
     Switch SelectRSS{
         Case "Upper RSS - 0x1A" :
         Hex0x1A()
         Sleep 100
-        
-
         Case "Lower RSS - 0x1B" :
         Hex0x1B()
         Sleep 100
-        
-
     }
 }
 
@@ -4919,6 +5801,13 @@ AnchorBoardMenu(*){
     AnchorBtn4.Enabled := true
     AnchorBtn5.Enabled := true
     AnchorBoardAccess.Enabled := true
+    AnchorCheckBox1.Visible := false
+    AnchorCheckBox2.Visible := false
+    AnchorCheckBox2.Value := "0"
+    AnchorBtn3.Enabled := false
+    AnchorBoardComChoice.Enabled := false
+    AnchorBoardCOMPort.Enabled := false
+    RefreshAnchorBoard.Enabled := false
     SelectedAnchorBoardOption := AnchorBoardComChoice.Text
     switch SelectedAnchorBoardOption {
         case "PCAN":
@@ -4960,6 +5849,7 @@ UseAnchorBoardID(*){
 
     }
     AnchorCheckVisibleStateShow
+    AnchorMenuVisibleStateHide
 }
 
 
@@ -5148,6 +6038,13 @@ OrientationMenu(*){
     OrientationBtn4.Enabled := true
     OrientationBtn5.Enabled := true
     OrientationAccess.Enabled := true
+    OrientationBtn3.Enabled := false
+    OrientationCheckBox1.Visible := false
+    OrientationCheckBox2.Visible := false
+    OrientationCheckBox2.Value := "0"
+    OrientationComChoice.Enabled := false
+    OrientationCOMPort.Enabled := false
+    RefreshOrientation.Enabled := false
     SelectedOrientationOption := OrientationComChoice.Text
     switch SelectedOrientationOption {
         case "PCAN":
@@ -5175,6 +6072,7 @@ UseOrientationID(*){
     Keystroke4()
     Sleep 200
     OrientationCheckVisibleStateShow
+    OrientationMenuVisibleStateHide
     SelectOrientation := OrientationAccess.Text
     Switch SelectOrientation{
         Case "0x2B" :
@@ -5192,6 +6090,8 @@ OrientationBtnFocus(*){
 OrientationBtnUnFocus(*){
     OrientationIdBtn.Opt("-Default")
 }
+
+
 
 UpdateOrientationIDs(*){
 
@@ -5245,7 +6145,419 @@ UpdateOrientationIDs(*){
 }
 
 
+OpenFiledialogEnvironment(*){
+    SelectedEnvironmentFWFile := FileSelect(1,,"Select Firmware","Firmware (*.hex)")
+    if (SelectedEnvironmentFWFile != "")
+    {
+        destinationEnvironmentDir := A_ScriptDir . "\\hexFiles_ENV\\"
+        newName := "ENV_leinApp_bl.hex"
 
+        destinationEnvironmentFile := destinationEnvironmentDir . newName
+
+        FileCopy(SelectedEnvironmentFWFile, destinationEnvironmentFile, 1)
+        FileSetAttrib "-R", "hexFiles_ENV\ENV_leinApp_bl.hex"
+
+        if (FileExist(destinationEnvironmentFile))
+            {
+            
+                Sleep 1000
+                CheckFWLoopEnvironment()
+
+            }
+
+    }
+}
+
+EnvironmentManBTNFocus(*){
+    EnvironmentManInput.Opt("+Default")
+}
+
+EnvironmentManBTNUnFocus(*){
+    EnvironmentManInput.Opt("-Default")
+}
+
+
+EnvironmentInputValueEnter(*){
+    ControlSend EnvironmentInput.Value ,, "tkToolUtility.exe"
+    Sleep 100
+    ControlSend "{Enter}" ,, "tkToolUtility.exe"
+    Sleep 100
+    EnvironmentInput.Value := ""
+}
+
+
+InstallFWEnvironment(*){
+    SelectedEnvironmentCom := EnvironmentComChoice.Text
+    switch SelectedEnvironmentCom {
+        case "PCAN":
+        Keystroke8()
+        Sleep 100 
+        Keystroke1()
+        Sleep 100 
+        Keystroke3()
+        Sleep 100 
+        ChooseEnvironment := ChooseEnvironmentFWIns.Text
+        Switch ChooseEnvironment{
+            Case "":
+            ControlSend "{N}",, "tkToolUtility.exe"
+            InsSID()
+            Case "0x21" :
+            ControlSend "{y}",, "tkToolUtility.exe"
+            Hex0x21()
+            Sleep 100
+            InsSID()
+        }
+    
+        ReopenAfterIns()
+    
+        case "QPSK/MasterBox":
+        Keystroke8()
+        Sleep 100
+        Keystroke2()
+        Sleep 100 
+        Keystroke3()
+        Sleep 200
+        ControlSend  EnvironmentCOMPort.Text ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 100 
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 100 
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 100 
+    
+        ReopenAfterIns()
+    
+        case "OFDM":
+            MsgBox "Don't do this"
+    }
+}
+
+
+EnvironmentMenu(*){
+    Keystroke7()
+    Sleep 200
+    EnvironmentBtn4.Enabled := true
+    EnvironmentBtn5.Enabled := true
+    EnvironmentAccess.Enabled := true
+    EnvironmentBtn3.Enabled := false
+    EnvironmentComChoice.Enabled := false
+    EnvironmentCOMPort.Enabled := false
+    RefreshEnvironment.Enabeld := false
+    EnvironmentCheckBox1.Visible := false
+    EnvironmentCheckBox2.Visible := false
+    EnvironmentCheckBox2.Value := "0"
+    SelectedEnvironmentOption := EnvironmentComChoice.Text
+    switch SelectedEnvironmentOption {
+        case "PCAN":
+            Keystroke1()
+            Sleep 200
+            Keystroke1()
+        case "QPSK/MasterBox":
+            Keystroke2()
+            Sleep 200
+            Keystroke1()
+            ControlSend  EnvironmentCOMPort.Text ,, "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+        case "OFDM":
+            Keystroke3()
+            Sleep 200
+            Keystroke3()
+    }
+}
+
+
+UseEnvironmentID(*){
+    Keystroke4()
+    Sleep 200
+    EnvironmentCheckVisibleStateShow
+    EnvironmentMenuVisibleStateHide
+    SelectEnvironment := EnvironmentAccess.Text
+    Switch SelectEnvironment{
+        Case "0x21" :
+        Hex0x21()
+        Sleep 100  
+
+    }
+}
+
+
+
+
+EnvironmentBtnFocus(*){
+    EnvironmentIdBtn.Opt("+Default")
+}
+
+EnvironmentBtnUnFocus(*){
+    EnvironmentIdBtn.Opt("-Default")
+}
+
+
+UpdateEnvironmentIDs(*){
+
+    if (EnvironmentAltusID.Value != "" && EnvironmentToolID.Value == ""){
+        Hex0x88()
+        Sleep 400
+        ControlSend  EnvironmentAltusID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        EnvironmentAltusID.Value := ""
+        Sleep 300
+        Hex0xF6()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+}
+    else if EnvironmentToolID.Value != "" && EnvironmentAltusID.Value == ""{
+        Hex0x8A()
+        Sleep 400
+        ControlSend  EnvironmentToolID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        EnvironmentToolID.Value := ""
+        Sleep 300
+        Hex0xF6()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+}
+    else if EnvironmentAltusID.Value != "" && EnvironmentToolID.Value != ""{
+        Hex0x88()
+        Sleep 200
+        ControlSend  EnvironmentAltusID.Value,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}",, "tkToolUtility.exe"
+        Sleep 600
+        EnvironmentAltusID.Value := ""
+        Sleep 400
+        Hex0x8A()
+        Sleep 200
+        ControlSend  EnvironmentToolID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        EnvironmentToolID.Value := ""
+        Sleep 300
+        Hex0xF6()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+    }
+    else{
+        return
+    }
+}
+
+
+;---------------------------------------------------
+
+OpenFiledialogFlowControl(*){
+    SelectedFlowControlFWFile := FileSelect(1,,"Select Firmware","Firmware (*.hex)")
+    if (SelectedFlowControlFWFile != "")
+    {
+        destinationFlowControlDir := A_ScriptDir . "\\hexFiles_flowCtrl\\"
+        newName := "FC_leinApp_bl.hex"
+
+        destinationFlowControlFile := destinationFlowControlDir . newName
+
+        FileCopy(SelectedFlowControlFWFile, destinationFlowControlFile, 1)
+        FileSetAttrib "-R", "hexFiles_flowCtrl\FC_leinApp_bl.hex"
+
+        if (FileExist(destinationFlowControlFile))
+            {
+            
+                Sleep 1000
+                CheckFWLoopFlowControl()
+
+            }
+
+    }
+}
+
+FlowControlManBTNFocus(*){
+    FlowControlManInput.Opt("+Default")
+}
+
+FlowControlManBTNUnFocus(*){
+    FlowControlManInput.Opt("-Default")
+}
+
+
+FlowControlInputValueEnter(*){
+    ControlSend FlowControlInput.Value ,, "tkToolUtility.exe"
+    Sleep 100
+    ControlSend "{Enter}" ,, "tkToolUtility.exe"
+    Sleep 100
+    FlowControlInput.Value := ""
+}
+
+
+InstallFWFlowControl(*){
+    SelectedFlowControlCom := FlowControlComChoice.Text
+    switch SelectedFlowControlCom {
+        case "PCAN":
+        Keystroke9()
+        Sleep 100 
+        Keystroke1()
+        Sleep 100 
+        Keystroke3()
+        Sleep 100 
+        ChooseFlowControl := ChooseFlowControlFWIns.Text
+        Switch ChooseFlowControl{
+            Case "":
+            ControlSend "{N}",, "tkToolUtility.exe"
+            InsSID()
+            Case "0x22" :
+            ControlSend "{y}",, "tkToolUtility.exe"
+            Hex0x22()
+            Sleep 100
+            InsSID()
+        }
+    
+        ReopenAfterIns()
+    
+        case "QPSK/MasterBox":
+        Keystroke8()
+        Sleep 100
+        Keystroke2()
+        Sleep 100 
+        Keystroke3()
+        Sleep 200
+        ControlSend  FlowControlCOMPort.Text ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 100 
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 100 
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 100 
+    
+        ReopenAfterIns()
+    
+        case "OFDM":
+            MsgBox "Don't do this"
+    }
+}
+
+
+FlowControlMenu(*){
+    Keystroke9()
+    Sleep 200
+    FlowControlBtn4.Enabled := true
+    FlowControlBtn5.Enabled := true
+    FlowControlAccess.Enabled := true
+    FlowControlBtn3.Enabled := false
+    FlowControlCheckBox1.Visible := false
+    FlowControlCheckBox2.Visible := false
+    FlowControlCheckBox2.Value := "0"
+    FlowControlCOMPort.Enabled := false
+    FlowControlComChoice.Enabled := false
+    RefreshFlowControl.Enabled := false
+    SelectedFlowControlOption := FlowControlComChoice.Text
+    switch SelectedFlowControlOption {
+        case "PCAN":
+            Keystroke1()
+            Sleep 200
+            Keystroke1()
+        case "QPSK/MasterBox":
+            Keystroke2()
+            Sleep 200
+            Keystroke1()
+            ControlSend  FlowControlCOMPort.Text ,, "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+            Sleep 200
+            ControlSend  "{Enter}", , "tkToolUtility.exe"
+        case "OFDM":
+            Keystroke3()
+            Sleep 200
+            Keystroke3()
+    }
+}
+
+
+UseFlowControlID(*){
+    Keystroke4()
+    Sleep 200
+    FlowControlCheckVisibleStateShow
+    FlowControlMenuVisibleStateHide
+    SelectFlowControl := FlowControlAccess.Text
+    Switch SelectFlowControl{
+        Case "0x22" :
+        Hex0x22()
+        Sleep 100  
+
+    }
+}
+
+
+
+
+FlowControlBtnFocus(*){
+    FlowControlIdBtn.Opt("+Default")
+}
+
+FlowControlBtnUnFocus(*){
+    FlowControlIdBtn.Opt("-Default")
+}
+
+
+UpdateFlowControlIDs(*){
+
+    if (FlowControlAltusID.Value != "" && FlowControlToolID.Value == ""){
+        Hex0x88()
+        Sleep 400
+        ControlSend  FlowControlAltusID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        FlowControlAltusID.Value := ""
+        Sleep 300
+        Hex0xF6()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+}
+    else if FlowControlToolID.Value != "" && FlowControlAltusID.Value == ""{
+        Hex0x8A()
+        Sleep 400
+        ControlSend  FlowControlToolID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        FlowControlToolID.Value := ""
+        Sleep 300
+        Hex0xF6()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+}
+    else if FlowControlAltusID.Value != "" && FlowControlToolID.Value != ""{
+        Hex0x88()
+        Sleep 200
+        ControlSend  FlowControlAltusID.Value,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}",, "tkToolUtility.exe"
+        Sleep 600
+        FlowControlAltusID.Value := ""
+        Sleep 400
+        Hex0x8A()
+        Sleep 200
+        ControlSend  FlowControlToolID.Value ,, "tkToolUtility.exe"
+        Sleep 200
+        ControlSend  "{Enter}", , "tkToolUtility.exe"
+        Sleep 400
+        FlowControlToolID.Value := ""
+        Sleep 300
+        Hex0xF6()
+        ControlSend  "{y}", , "tkToolUtility.exe"
+    }
+    else{
+        return
+    }
+}
+
+
+;---------------------------------------------------
 
 SingleEnter(*) {
     ; Send a keystroke to the console window
@@ -5417,6 +6729,14 @@ Hex0x1B(*){
 
 Hex0x2B(*){
     ControlSend "{0}{x}{2}{B}{Enter}",, "tkToolUtility.exe"
+}
+
+Hex0x21(*){
+    ControlSend "{0}{x}{2}{1}{Enter}",, "tkToolUtility.exe"
+}
+
+Hex0x22(*){
+    ControlSend "{0}{x}{2}{2}{Enter}",, "tkToolUtility.exe"
 }
 
 
